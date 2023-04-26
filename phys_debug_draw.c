@@ -15,18 +15,28 @@ void phys_debug_draw_velocity_func(phys_obj_t* obj)
 
 void phys_debug_draw_collider_func(phys_obj_t* obj, f32* color)
 {
+	if (!PHYS_OBJ_HAS_COLLIDER(obj)) { return; }
   switch (obj->collider.type)
   {
     case PHYS_COLLIDER_SPHERE:
-      P_INFO("sphere collider debug not implemented");
-      P_INT(obj->entity_idx);
-      // @NOTE: deserialized entites get wrong id in phys_obj_t
+      phys_debug_draw_sphere_collider_func(obj, color);
       break;
     case PHYS_COLLIDER_BOX:
       phys_debug_draw_box_collider_func(obj, color);
       break;
   }
 }
+
+void phys_debug_draw_sphere_collider_func(phys_obj_t* obj, f32* color)
+{
+	if (!PHYS_OBJ_HAS_COLLIDER(obj)) { return; }
+  
+  f32 radius = obj->collider.sphere.radius * ((obj->scl[0] + obj->scl[1] + obj->scl[2]) * 0.33f);
+  debug_draw_draw_circle(VEC3_XYZ(1, 1, 0), obj->pos, radius, color);
+  debug_draw_draw_circle(VEC3_XYZ(1, 0, 1), obj->pos, radius, color);
+  debug_draw_draw_circle(VEC3_XYZ(0, 1, 1), obj->pos, radius, color);
+}
+
 
 void phys_debug_draw_box_collider_func(phys_obj_t* obj, f32* color)
 {

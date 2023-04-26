@@ -1,19 +1,21 @@
-#ifndef PHYS_TYPES_H
-#define PHYS_TYPES_H
+#ifndef PHYS_PHYS_TYPES_H
+#define PHYS_PHYS_TYPES_H
 
 #include "global/global.h"
 #include "math/math_inc.h"
 
+// @DOC: holds all info about collision needed to resolve it
 typedef struct collision_info_t
 {
-  bool collision;
+  bool collision; // if any collision happened at all
   vec3 direction; // normal of collision
-  f32  depth;
+  f32  depth;     // how deep the penetration is
   int  obj_idx;   // idx into phys_objs array in phys_world.c, of other phys_obj_t
-  bool trigger;
+  bool trigger;   // if one or both colliders are trigger
   bool grounded;  // currently colliding in -y direction
 
 }collision_info_t;
+// @DOC: default values for collision_info_t
 #define COLLISION_INFO_T_INIT() \
 {                               \
   .collision = false,           \
@@ -27,6 +29,9 @@ typedef struct collision_info_t
 #define P_COLLISION_INFO_T(a)   { PF("collision_info_t: %s\n", #a); P_BOOL((a).collision); P_VEC3((a).direction); \
                                   P_F32((a).depth); P_INT((a).obj_idx); P_BOOL((a).trigger); }
 
+// @DOC: box collider, aka. aabb
+//       aabb[0] is min
+//       aabb[1] is max
 typedef struct box_collider_t
 {
   vec3 aabb[2];
@@ -34,6 +39,7 @@ typedef struct box_collider_t
 }box_collider_t;
 #define P_BOX_COLLIDER_T(a)     { PF("box_collider_t: %s\n", #a); P_VEC3((a).aabb[0]); P_VEC3((a).aabb[1]); }
 
+// @DOC: sphere collider, only need radius
 typedef struct sphere_collider_t
 {
   f32 radius;
@@ -41,6 +47,7 @@ typedef struct sphere_collider_t
 }sphere_collider_t;
 #define P_SPHERE_COLLIDER_T(a)  { PF("sphere_collider_t: %s", #a); P_F32((a).radius); }  
 
+// @DOC: type of collider
 typedef enum collider_type_t 
 { 
   PHYS_COLLIDER_SPHERE, 
@@ -51,20 +58,21 @@ typedef enum collider_type_t
                                   PF("%s\n", (a) == PHYS_COLLIDER_SPHERE ? "PHYS_COLLIDER_SPHERE" :   \
                                   (a) == PHYS_COLLIDER_BOX ? "PHYS_COLLIDER_BOX" : "UNKNOWN"); }
 
+// @DOC: collider, can be any of collider_type_t's specified types
 typedef struct collider_t
 {
   collider_type_t type;
-  vec3 offset;
-  bool is_trigger;
-  bool is_colliding;
-  bool is_grounded;
-  union
+  vec3 offset;        // offset from phys_obj_t
+  bool is_trigger;    // if true, doesnt affect other colliders, but collisions get registered
+  bool is_colliding;  // is currently colliding
+  bool is_grounded;   // is currently colliding with something below it
+  union               // only need either sphere or box, never both
   {
     sphere_collider_t sphere;
     box_collider_t    box;
   };
 
-  collision_info_t* infos;
+  collision_info_t* infos;  // all collision infos, because multiple collisions may occur in one frame
   int infos_len;
 
 }collider_t;
@@ -74,11 +82,12 @@ typedef struct collider_t
                                 if ((a).type == PHYS_COLLIDER_SPHERE) { P_SPHERE_COLLIDER_T((a).sphere); }                                      \
                                 if ((a).type == PHYS_COLLIDER_BOX)    { P_BOX_COLLIDER_T((a).box); } }                                  
 
+// @DOC: rigidbidy, all data needed to simulate dynamics
 typedef struct rigidbody_t
 {
-  vec3 velocity;
+  vec3 velocity;    // current velocity
   vec3 force;       // also often called 'acceleration-accumulator'
-  f32  mass;
+  f32  mass;        // objs mass
   f32  drag;        // slows object constantly, the lower the more stronger
   f32  friction;    // scales drag when colliding, the lower the more friction, i.e. 0.0f <->  1.0f
 
@@ -89,6 +98,7 @@ typedef struct rigidbody_t
 
 }rigidbody_t;
 
+// @DOC: default values for rigidbody_t
 #define RIGIDBODY_T_INIT()  \
 {                           \
   .velocity = { 0, 0, 0 },  \
@@ -101,6 +111,7 @@ typedef struct rigidbody_t
 #define P_RIGIDBODY_T(a)      { P_LINE(); PF("rigidbody_t: %s\n", #a); P_VEC3((a).velocity); P_VEC3((a).force);                       \
                                 P_F32((a).mass); P_F32((a).restitution); P_F32((a).static_friction); P_F32((a).dynamic_friction); }
 
+// @DOC: flag defining which 'components' a phys_obj_t has
 typedef enum phys_obj_flag 
 { 
   PHYS_HAS_RIGIDBODY = FLAG(0), 
@@ -109,8 +120,8 @@ typedef enum phys_obj_flag
 
 } phys_obj_flag;
 #define PHYS_OBJ_HAS_RIGIDBODY(obj) (HAS_FLAG((obj)->flags, PHYS_HAS_RIGIDBODY))
-#define PHYS_OBJ_HAS_COLLIDER(obj) \
-  (HAS_FLAG((obj)->flags, PHYS_HAS_BOX) || HAS_FLAG((obj)->flags, PHYS_HAS_SPHERE))
+// #define PHYS_OBJ_HAS_COLLIDER(obj)  (HAS_FLAG((obj)->flags, PHYS_HAS_BOX) || HAS_FLAG((obj)->flags, PHYS_HAS_SPHERE))
+#define PHYS_OBJ_HAS_COLLIDER(obj)  (HAS_FLAG((obj)->flags, PHYS_HAS_BOX | PHYS_HAS_SPHERE))
 
 // @NOTE: cant use STR_BOOL() and HAS_FLAG() because of how macros are 'unfolded'
 #define P_PHYS_OBJ_FLAGS_T(a) { PF("phys_obj_flag: %s\n", #a);                                                       \
@@ -118,13 +129,15 @@ typedef enum phys_obj_flag
                                 PF("PHYS_HAS_BOX: %s\n",        ((a) & PHYS_HAS_BOX)       ? "true" : "false");   \
                                 PF("PHYS_HAS_SPHERE: %s\n",     ((a) & PHYS_HAS_SPHERE)    ? "true" : "false"); }
 
+// @DOC: the objs simulated and attached to an entity
 typedef struct phys_obj_t
 {
-  u32  entity_idx;
-  vec3 pos;
-  vec3 scl;       
+  u32  entity_idx;  // id of entity the phys_obj_t simulates
+  vec3 pos;         // position
+  vec3 scl;         // scale
+  // no rotation, not supported
 
-  phys_obj_flag flags;
+  phys_obj_flag flags;  // 'components' attached to obj
   rigidbody_t rb;
   collider_t  collider;
 }phys_obj_t;

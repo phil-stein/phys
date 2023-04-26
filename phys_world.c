@@ -49,6 +49,23 @@ void phys_obj_make_box(vec3 aabb[2], vec3 offset, bool is_trigger, phys_obj_t* o
   obj->collider.infos = NULL;
   obj->collider.infos_len = 0;
 }
+void phys_obj_make_sphere(f32 radius, vec3 offset, bool is_trigger, phys_obj_t* obj)
+{
+  // ASSERT(!HAS_FLAG(obj->flags, PHYS_HAS_SPHERE));
+  ASSERT(!PHYS_OBJ_HAS_COLLIDER(obj));
+  obj->flags |= PHYS_HAS_SPHERE;
+  
+  obj->collider.type = PHYS_COLLIDER_SPHERE;
+  
+  vec3_copy(offset, obj->collider.offset);
+  obj->collider.is_trigger   = is_trigger;
+  obj->collider.is_colliding = false;
+  
+  obj->collider.sphere.radius = radius;
+
+  obj->collider.infos = NULL;
+  obj->collider.infos_len = 0;
+}
 
 void phys_add_obj_rb(u32 entity_idx, vec3 pos, f32 mass, f32 friction)
 {
@@ -74,6 +91,18 @@ void phys_add_obj_box(u32 entity_idx, vec3 pos, vec3 scl, vec3 aabb[2], vec3 off
   arrput(phys_objs, obj);
   phys_objs_len++;
 }
+void phys_add_obj_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 radius, vec3 offset, bool is_trigger)
+{
+  phys_obj_t obj = PHYS_OBJ_T_INIT();
+  obj.entity_idx = entity_idx;
+  vec3_copy(pos, obj.pos);
+  vec3_copy(scl, obj.scl);
+
+  phys_obj_make_sphere(radius, offset, is_trigger, &obj); 
+
+  arrput(phys_objs, obj);
+  phys_objs_len++;
+}
 void phys_add_obj_rb_box(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, vec3 aabb[2], vec3 offset, bool is_trigger)
 {
   phys_obj_t obj = PHYS_OBJ_T_INIT();
@@ -83,6 +112,19 @@ void phys_add_obj_rb_box(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 frict
 
   phys_obj_make_rb(mass, friction, &obj);
   phys_obj_make_box(aabb, offset, is_trigger, &obj);
+
+  arrput(phys_objs, obj);
+  phys_objs_len++;
+}
+void phys_add_obj_rb_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, f32 radius, vec3 offset, bool is_trigger)
+{
+  phys_obj_t obj = PHYS_OBJ_T_INIT();
+  obj.entity_idx = entity_idx;
+  vec3_copy(pos, obj.pos);
+  vec3_copy(scl, obj.scl);
+
+  phys_obj_make_rb(mass, friction, &obj);
+  phys_obj_make_sphere(radius, offset, is_trigger, &obj);
 
   arrput(phys_objs, obj);
   phys_objs_len++;
@@ -127,8 +169,7 @@ void phys_rotate_box_y(u32 entity_idx)
 // @TODO:
 void phys_clear_state()
 {
-  arrfree(phys_objs);
-  phys_objs = NULL;
+  ARRFREE(phys_objs);
   phys_objs_len = 0;
 }
 
@@ -153,14 +194,12 @@ void phys_update(f32 dt)
 	{
     phys_obj_t* obj0 = &phys_objs[i];
 
-		// ---- dynamics ----
+    // ---- dynamics ----
 		if (!PHYS_OBJ_HAS_RIGIDBODY(obj0)) { continue; }
     phys_dynamics_simulate(obj0, dt);
 
-		// // ---- collision ----
+		// ---- collision ----
 		if (!PHYS_OBJ_HAS_COLLIDER(obj0)) { continue; }
-    
-    // phys_debug_draw_collider(obj0);
     
     obj0->collider.is_colliding = false; 
 	  obj0->collider.is_grounded  = false; 	
@@ -192,6 +231,7 @@ void phys_update(f32 dt)
 
 		    if (!c.trigger && PHYS_OBJ_HAS_RIGIDBODY(obj0)) // no response on trigger collisions
 		  	{
+          // P_INT(obj1->entity_idx);
 		  		phys_collision_resolution(obj0, obj1, c);
           COLLISION_CALLBACK(obj0->entity_idx, obj1->entity_idx);
 		  	}

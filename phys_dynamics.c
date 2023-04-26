@@ -69,7 +69,4 @@ void phys_dynamics_simulate(phys_obj_t* obj, f32 dt)
 	// reset accumulator
 	vec3_copy(VEC3(0), obj->rb.force);
 
-
-
-  phys_debug_draw_velocity(obj);
 }
