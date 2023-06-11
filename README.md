@@ -5,7 +5,7 @@ using:      [stb_image & stb_ds](https://github.com/nothings/stb)<br>
 and my own: [math-library](https://github.com/phil-stein/math) & [global-defines](https://github.com/phil-stein/global) <br>
 used in [mooh_engine](https://github.com/phil-stein/mooh_engine) <br>
 
-<img src="https://github.com/phil-stein/mooh_engine/blob/main/_assets/project_files/screenshot_phys_01.png" alt="logo" width="1000">
+<img src="https://github.com/phil-stein/phys/screenshot_phys_01.png" alt="logo" width="1000">
 
 
 ## features
