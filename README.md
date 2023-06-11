@@ -9,11 +9,11 @@ used in [mooh_engine](https://github.com/phil-stein/mooh_engine) <br>
 
 
 ## features
-  [x] dynamics
-  [x] aabb
-  [x] spheres
-  [x] resolution
-  [ ] obb
-  [ ] terrain
-  [ ] swept collisions
-  [ ] octree
+  - [x] dynamics
+  - [x] aabb
+  - [x] spheres
+  - [x] resolution
+  - [ ] obb
+  - [ ] terrain
+  - [ ] swept collisions
+  - [ ] octree
