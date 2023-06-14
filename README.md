@@ -7,8 +7,6 @@ used in [mooh_engine](https://github.com/phil-stein/mooh_engine) <br>
 
 <img src="https://github.com/phil-stein//screenshot_phys_01.png" alt="logo" width="1000">
 
-tmp
-
 ## features
   [x] dynamics
   [x] aabb
