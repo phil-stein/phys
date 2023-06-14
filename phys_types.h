@@ -77,6 +77,7 @@ typedef struct collider_t
 
 }collider_t;
 
+
 // @NOTE: doesnt print collision infos
 #define P_COLLIDER_T(a)       { P_LINE(); PF("collider_t: %s\n", #a); P_COLLIDER_TYPE_T((a).type); P_VEC3((a).offset); P_BOOL((a).is_trigger);  \
                                 if ((a).type == PHYS_COLLIDER_SPHERE) { P_SPHERE_COLLIDER_T((a).sphere); }                                      \
@@ -161,5 +162,38 @@ typedef struct phys_obj_t
 #define ERR_PHYS_OBJ_T_NAN(a) { P_PHYS_OBJ_T_NAN(a); ERR_CHECK(!VEC3_NAN((a)->pos) && !VEC3_NAN((a)->scl) &&     \
                                 !VEC3_NAN((a)->rb.velocity) && !VEC3_NAN((a)->rb.force), "'%s'->idx: %d\n", #a, (a)->entity_idx); }
 
+// @NOTE: mistook mynkowski sum for addition sum, lol
+// // INLINE void phys_aabb_add(box_collider_t* b0, box_collider_t* b1, box_collider_t* out)
+// INLINE void phys_aabb_add(vec3* b0, vec3* b1, vec3* out)
+// {
+//   // out->aabb[0][0] = b0->aabb[0][0] + b1->aabb[0][0];
+//   // out->aabb[0][1] = b0->aabb[0][1] + b1->aabb[0][2];
+//   // out->aabb[0][2] = b0->aabb[0][2] + b1->aabb[0][3];
+//   // 
+//   // out->aabb[1][0] = b0->aabb[1][0] + b1->aabb[1][0];
+//   // out->aabb[1][1] = b0->aabb[1][1] + b1->aabb[1][2];
+//   // out->aabb[1][2] = b0->aabb[1][2] + b1->aabb[1][3];
+// 
+//   out[0][0] = b0[0][0] + b1[0][0];
+//   out[0][1] = b0[0][1] + b1[0][2];
+//   out[0][2] = b0[0][2] + b1[0][3];
+//   
+//   out[1][0] = b0[1][0] + b1[1][0];
+//   out[1][1] = b0[1][1] + b1[1][2];
+//   out[1][2] = b0[1][2] + b1[1][3];
+// }
+INLINE void phys_get_final_aabb(phys_obj_t* b, vec3* out)
+{
+  f32* min = &out[0];
+  f32* max = &out[1];
+  vec3_copy(b->collider.box.aabb[0], min);
+  vec3_copy(b->collider.box.aabb[1], max);
+  vec3_mul(min, b->scl, min);
+  vec3_mul(max, b->scl, max);
+	vec3_add(min, b->pos, min);
+	vec3_add(max, b->pos, max);
+	vec3_add(min, b->collider.offset, min);
+	vec3_add(max, b->collider.offset, max);
+}
 
 #endif

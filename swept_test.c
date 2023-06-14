@@ -28,3 +28,13 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
     yExit = yInvExit / b1.vy; 
   }
 }
+
+// dylan falconer: https://www.youtube.com/watch?v=3dIiTo7mlnU 
+collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj_t* b1)
+{
+  collision_info_t info;
+
+  
+
+  return info;
+}
