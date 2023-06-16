@@ -184,8 +184,8 @@ typedef struct phys_obj_t
 // }
 INLINE void phys_get_final_aabb(phys_obj_t* b, vec3* out)
 {
-  f32* min = &out[0];
-  f32* max = &out[1];
+  f32* min = (f32*)&out[0];
+  f32* max = (f32*)&out[1];
   vec3_copy(b->collider.box.aabb[0], min);
   vec3_copy(b->collider.box.aabb[1], max);
   vec3_mul(min, b->scl, min);
