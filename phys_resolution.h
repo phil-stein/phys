@@ -5,6 +5,10 @@
 #include "phys/phys_types.h" 
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // @DOC: resolve collision between two phys_obj_t, by moving them out of one another, an adjusting their velocities
 //       obj0: first object to have collided
 //       obj1: second object to have collided
@@ -15,5 +19,10 @@ void phys_collision_resolution(phys_obj_t* obj0, phys_obj_t* obj1, collision_inf
 // void phys_collision_resolution(phys_obj_t* obj0, phys_obj_t* obj1, collision_info_t info);
 // void phys_collision_response_resolve_position(phys_obj_t* obj0, phys_obj_t* obj1, collision_info_t info);
 // void phys_collision_response_resolve_velocity(phys_obj_t* obj0, phys_obj_t* obj1, collision_info_t info);
+
+
+#ifdef __cplusplus
+} // extern c
+#endif
 
 #endif

@@ -3,6 +3,10 @@
 
 #include "phys/phys_types.h" 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // @DOC: check collision between two entities, regardless of collider type
 //       e1: first phys obj with  collider
 //       e2: second phys obj with collider
@@ -24,5 +28,9 @@ collision_info_t phys_collision_check_aabb_v_aabb(phys_obj_t* b1, phys_obj_t* b2
 //       s2: second phys_obj with sphere collider
 //       switch_obj_places: if true treat s as the active obj, inverses info.direction
 collision_info_t phys_collision_check_aabb_v_sphere(phys_obj_t* b, phys_obj_t* s, bool switch_obj_places);
+
+#ifdef __cplusplus
+} // extern c
+#endif
 
 #endif

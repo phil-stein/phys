@@ -1,6 +1,10 @@
 #ifndef PHYS_PHYS_DEBUG_DRAW_H
 #define PHYS_PHYS_DEBUG_DRAW_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef PHYS_DEBUG
 
 #include "core/debug/debug_draw.h"
@@ -67,5 +71,9 @@ void phys_debug_draw_box_collider_func(phys_obj_t* obj, f32* color);
 #define phys_debug_draw_sphere_collider(obj)       
 
 #endif // PHYS_DEBUG
+
+#ifdef __cplusplus
+} // extern c
+#endif
 
 #endif

@@ -4,6 +4,9 @@
 #include "global/global.h"
 #include "phys/phys_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // @DOC: func type for collision callbacks
 typedef void (phys_internal_collision_callback)(int id_01, int id_02);
@@ -60,5 +63,10 @@ void phys_clear_state();
 // @DOC: get arr with all phys_obj_t 
 //       len: gets set to arr's length
 phys_obj_t* phys_get_obj_arr(u32* len);
+
+
+#ifdef __cplusplus
+} // extern c
+#endif
 
 #endif

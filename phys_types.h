@@ -4,6 +4,10 @@
 #include "global/global.h"
 #include "math/math_inc.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // @DOC: holds all info about collision needed to resolve it
 typedef struct collision_info_t
 {
@@ -195,5 +199,10 @@ INLINE void phys_get_final_aabb(phys_obj_t* b, vec3* out)
 	vec3_add(min, b->collider.offset, min);
 	vec3_add(max, b->collider.offset, max);
 }
+
+
+#ifdef __cplusplus
+} // extern c
+#endif
 
 #endif
