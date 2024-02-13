@@ -72,6 +72,7 @@ void phys_add_obj_rb(u32 entity_idx, vec3 pos, f32 mass, f32 friction)
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
   vec3_copy(pos, obj.pos);
+  vec3_copy(pos, obj.last_pos);
   vec3_copy(VEC3(1), obj.scl);
 
   phys_obj_make_rb(mass, friction, &obj);
@@ -84,6 +85,7 @@ void phys_add_obj_box(u32 entity_idx, vec3 pos, vec3 scl, vec3 aabb[2], vec3 off
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
   vec3_copy(pos, obj.pos);
+  vec3_copy(pos, obj.last_pos);
   vec3_copy(scl, obj.scl);
 
   phys_obj_make_box(aabb, offset, is_trigger, &obj); 
@@ -96,6 +98,7 @@ void phys_add_obj_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 radius, vec3 of
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
   vec3_copy(pos, obj.pos);
+  vec3_copy(pos, obj.last_pos);
   vec3_copy(scl, obj.scl);
 
   phys_obj_make_sphere(radius, offset, is_trigger, &obj); 
@@ -108,6 +111,7 @@ void phys_add_obj_rb_box(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 frict
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
   vec3_copy(pos, obj.pos);
+  vec3_copy(pos, obj.last_pos);
   vec3_copy(scl, obj.scl);
 
   phys_obj_make_rb(mass, friction, &obj);
@@ -121,6 +125,7 @@ void phys_add_obj_rb_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 fr
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
   vec3_copy(pos, obj.pos);
+  vec3_copy(pos, obj.last_pos);
   vec3_copy(scl, obj.scl);
 
   phys_obj_make_rb(mass, friction, &obj);

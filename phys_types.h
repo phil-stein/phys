@@ -140,6 +140,7 @@ typedef struct phys_obj_t
   u32  entity_idx;  // id of entity the phys_obj_t simulates
   vec3 pos;         // position
   vec3 scl;         // scale
+  vec3 last_pos;    // position, last frame
   // no rotation, not supported
 
   phys_obj_flag flags;  // 'components' attached to obj
@@ -199,6 +200,23 @@ INLINE void phys_get_final_aabb(phys_obj_t* b, vec3* out)
 	vec3_add(min, b->collider.offset, min);
 	vec3_add(max, b->collider.offset, max);
 }
+
+// --- raycasting ---
+
+typedef struct
+{
+  vec3 pos;
+  vec3 dir;
+
+} ray_t;
+
+typedef struct
+{
+  bool hit;
+  f32  dist;
+  vec3 hit_point;
+  int  entity_idx;
+} ray_hit_t;
 
 
 #ifdef __cplusplus

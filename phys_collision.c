@@ -52,12 +52,44 @@ collision_info_t phys_collision_check_sphere_v_sphere(phys_obj_t* s0, phys_obj_t
   f32 radius0 = s0->collider.sphere.radius * ((s0->scl[0] + s0->scl[1] + s0->scl[2]) * 0.33f);
   f32 radius1 = s1->collider.sphere.radius * ((s1->scl[0] + s1->scl[1] + s1->scl[2]) * 0.33f);
 
-  info.depth = vec3_distance(pos0, pos1);
-	info.depth = info.depth - (radius0 + radius1);
+  info.depth =  vec3_distance(pos0, pos1);
+	info.depth -= (radius0 + radius1);
 
 	info.collision = info.depth < 0;
   // info.depth *= -1;
 	if (!info.collision) { return info; }
+
+	vec3_sub(pos1, pos0, info.direction);
+	vec3_normalize(info.direction, info.direction);
+	
+  return info;
+}
+
+// @TODO: finish this
+collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys_obj_t* s1)
+{
+	collision_info_t info;
+  info.collision = false;
+	
+  vec3 pos0 = VEC3_INIT(0);
+	vec3 pos1 = VEC3_INIT(0);	
+  vec3_add(s0->pos, s0->collider.offset, pos0);
+	vec3_add(s1->pos, s1->collider.offset, pos1);
+	
+
+  f32 radius0 = s0->collider.sphere.radius * ((s0->scl[0] + s0->scl[1] + s0->scl[2]) * 0.33f);
+  f32 radius1 = s1->collider.sphere.radius * ((s1->scl[0] + s1->scl[1] + s1->scl[2]) * 0.33f);
+
+  // @TODO: 
+  // treat s0 as point and raycast against s1 with its radius being the sum of both radii
+  // this way only one raycast is required
+
+  
+  // info.depth = vec3_distance(pos0, pos1);
+	// info.depth =- (radius0 + radius1);
+
+	// info.collision = info.depth < 0;
+	// if (!info.collision) { return info; }
 
 	vec3_sub(pos1, pos0, info.direction);
 	vec3_normalize(info.direction, info.direction);

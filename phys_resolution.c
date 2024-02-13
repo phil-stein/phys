@@ -17,7 +17,16 @@ void phys_collision_resolution(phys_obj_t* obj0, phys_obj_t* obj1, collision_inf
   // position correction
 	vec3 dist;
 	vec3_mul_f(info.direction, info.depth * 1.0f, dist);  // 0.5f
+	vec3_copy(obj0->pos, obj0->last_pos);
 	vec3_add(obj0->pos, dist, obj0->pos);
+  
+  // @TMP: debug
+  // vec3 dir;
+  // vec3_sub(obj0->last_pos, obj0->pos, sub);
+  // vec3_mul_f(sub, 10, sub);
+  debug_draw_line_register(obj0->last_pos, obj0->pos, RGB_F(0, 1, 1));
+  debug_draw_sphere_register(obj0->pos,      0.02f, RGB_F(0, 1, 0));
+  debug_draw_sphere_register(obj0->last_pos, 0.02f, RGB_F(1, 0, 0));
 
 	// @TODO: maybe use ellastic collision equation
 	// 	  or at least use mass to determine a ratio
