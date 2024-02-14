@@ -23,6 +23,7 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
 //       s1: first phys_obj with box collider
 //       s2: second phys_obj with box collider
 collision_info_t phys_collision_check_aabb_v_aabb(phys_obj_t* b1, phys_obj_t* b2);
+collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj_t* b1);
 
 // @DOC: check collision between to phys_obj_t on box/aabb, one sphere collider
 //       s1: first phys_obj with box collider
@@ -101,6 +102,7 @@ INLINE bool phys_collision_check_ray_v_sphere(ray_t* ray, vec3 sphere_pos, f32 r
 }
 INLINE bool phys_collision_check_ray_v_sphere_obj(ray_t* ray, phys_obj_t* sphere, f32* dist, vec3 hit_out)
 {
+  if (!PHYS_OBJ_HAS_COLLIDER(sphere) || sphere->collider.type != PHYS_COLLIDER_SPHERE) { return false; }
   vec3 sphere_pos = VEC3_INIT(0);
   vec3_add(sphere->pos, sphere->collider.offset, sphere_pos);
   f32 radius = sphere->collider.sphere.radius * ( (sphere->scl[0] + sphere->scl[1] + sphere->scl[2]) * 0.33f);
@@ -114,19 +116,8 @@ INLINE bool phys_collision_check_ray_v_sphere_obj(ray_t* ray, phys_obj_t* sphere
 //       returns true if hit
 //       puts hit point in hit_out
 //       puts dist between ray->pos and hit_out in dist
-INLINE bool phys_collision_check_ray_v_aabb(ray_t* ray, phys_obj_t* box, f32* dist, vec3 hit_out) 
+INLINE bool phys_collision_check_ray_v_aabb(ray_t* ray, vec3 min, vec3 max, f32* dist, vec3 hit_out) 
 {
-	// add position & offset to min & max of both colliders
-	vec3 min, max;
-	vec3_copy(box->collider.box.aabb[0], min);
-	vec3_copy(box->collider.box.aabb[1], max);
-  vec3_mul(min, box->scl, min);
-  vec3_mul(max, box->scl, max);
-	vec3_add(min, box->pos, min);
-	vec3_add(max, box->pos, max);
-	vec3_add(min, box->collider.offset, min);
-	vec3_add(max, box->collider.offset, max);
-  
   f32 t1 = (min[0] - ray->pos[0]) / ray->dir[0];
   f32 t2 = (max[0] - ray->pos[0]) / ray->dir[0];
   f32 t3 = (min[1] - ray->pos[1]) / ray->dir[1];
@@ -153,6 +144,23 @@ INLINE bool phys_collision_check_ray_v_aabb(ray_t* ray, phys_obj_t* box, f32* di
   vec3_add(hit_out, ray->pos, hit_out);
 
   return true;
+}
+INLINE bool phys_collision_check_ray_v_aabb_obj(ray_t* ray, phys_obj_t* box, f32* dist, vec3 hit_out) 
+{
+  if (!PHYS_OBJ_HAS_COLLIDER(box) || box->collider.type != PHYS_COLLIDER_BOX) { return false; }
+	
+    // add position & offset to min & max of both colliders
+	vec3 min, max;
+	vec3_copy(box->collider.box.aabb[0], min);
+	vec3_copy(box->collider.box.aabb[1], max);
+  vec3_mul(min, box->scl, min);
+  vec3_mul(max, box->scl, max);
+	vec3_add(min, box->pos, min);
+	vec3_add(max, box->pos, max);
+	vec3_add(min, box->collider.offset, min);
+	vec3_add(max, box->collider.offset, max);
+  
+  return phys_collision_check_ray_v_aabb(ray, min, max, dist, hit_out);
 }
 
 

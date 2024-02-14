@@ -41,7 +41,7 @@ bool phys_ray_cast(ray_t* ray, ray_hit_t* out)
         break;
       
       case PHYS_COLLIDER_BOX:
-        if ( phys_collision_check_ray_v_aabb(ray, obj, &dist, hit_point) )
+        if ( phys_collision_check_ray_v_aabb_obj(ray, obj, &dist, hit_point) )
         {
           ray_hit_t hit = 
           { 

@@ -33,6 +33,12 @@ void phys_debug_draw_collider_func(phys_obj_t* obj, f32* color);
 //       obj:   object whichs collider will be drawn
 //       color: f32[3] rgb, defing color of collider debug display
 void phys_debug_draw_sphere_collider_func(phys_obj_t* obj, f32* color);
+
+// @DOC: draw a box of lines around an aabb
+//       min:   min of aabb
+//       max:   max of aabb
+//       color: color of lines
+void phys_debug_draw_aabb_func(vec3 min, vec3 max, f32* color);
 // @DOC: draw a box of lines as a debug display for a box collider
 //       obj:   object whichs collider will be drawn
 //       color: f32[3] rgb, defing color of collider debug display
@@ -47,6 +53,7 @@ void phys_debug_draw_box_collider_func(phys_obj_t* obj, f32* color);
                                                       PHYS_DEBUG_COLLIDER_COLOR_DYNAMIC :                                   \
                                                       PHYS_DEBUG_COLLIDER_COLOR_STATIC))
 
+#define phys_debug_draw_aabb(min, max, color)        phys_debug_draw_aabb_func(min, max, color)
 #define phys_debug_draw_box_collider_col(obj, c)     phys_debug_draw_box_collider_func(obj, c)
 #define phys_debug_draw_box_collider(obj)            phys_debug_draw_box_collider_func(obj,                                 \
                                                      (obj)->collider.is_trigger ? PHYS_DEBUG_COLLIDER_COLOR_TRIGGER :       \
@@ -64,6 +71,7 @@ void phys_debug_draw_box_collider_func(phys_obj_t* obj, f32* color);
 #else // PHYS_DEBUG
 
 #define phys_debug_draw_velocity(obj)  
+#define phys_debug_draw_aabb(min, max, color)        
 #define phys_debug_draw_collider(obj, c)      
 #define phys_debug_draw_box_collider_col(obj, c)
 #define phys_debug_draw_box_collider(obj)  
