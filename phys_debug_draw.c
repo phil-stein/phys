@@ -32,9 +32,10 @@ void phys_debug_draw_sphere_collider_func(phys_obj_t* obj, f32* color)
 	if (!PHYS_OBJ_HAS_COLLIDER(obj)) { return; }
   
   f32 radius = obj->collider.sphere.radius * ((obj->scl[0] + obj->scl[1] + obj->scl[2]) * 0.33f);
-  debug_draw_draw_circle(VEC3_XYZ(1, 1, 0), obj->pos, radius, color);
-  debug_draw_draw_circle(VEC3_XYZ(1, 0, 1), obj->pos, radius, color);
-  debug_draw_draw_circle(VEC3_XYZ(0, 1, 1), obj->pos, radius, color);
+  // debug_draw_circle_register(VEC3_XYZ(1, 1, 0), obj->pos, radius, color);
+  // debug_draw_circle_register(VEC3_XYZ(1, 0, 1), obj->pos, radius, color);
+  // debug_draw_circle_register(VEC3_XYZ(0, 1, 1), obj->pos, radius, color);
+  debug_draw_circle_sphere_register(obj->pos, radius, color);
 }
 
 

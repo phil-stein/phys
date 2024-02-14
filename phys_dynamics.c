@@ -52,6 +52,7 @@ void phys_dynamics_simulate(phys_obj_t* obj, f32 dt)
 	// pos += vel * dt 
 	vec3 v_dt;
 	vec3_mul_f(obj->rb.velocity, dt, v_dt);
+	vec3_copy(obj->pos, obj->last_pos); // set last frames pos
 	vec3_add(obj->pos, v_dt, obj->pos);
 
 	// acceleration accumulator

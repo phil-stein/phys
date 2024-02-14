@@ -26,7 +26,7 @@ bool phys_ray_cast(ray_t* ray, ray_hit_t* out)
     switch (obj->collider.type)
     {
       case PHYS_COLLIDER_SPHERE:
-        if ( phys_collision_check_ray_v_sphere(ray, obj, &dist, hit_point) )
+        if ( phys_collision_check_ray_v_sphere_obj(ray, obj, &dist, hit_point) )
         {
           ray_hit_t hit = 
           { 
