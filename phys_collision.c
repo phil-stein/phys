@@ -5,10 +5,9 @@
 
 collision_info_t phys_collision_check(phys_obj_t* obj0, phys_obj_t* obj1)
 {
-	if (!PHYS_OBJ_HAS_COLLIDER(obj0) || !PHYS_OBJ_HAS_COLLIDER(obj1)) 
-  { collision_info_t c; c.collision = false; return c; }
 	collision_info_t c;
 	c.collision = false;
+	if (!PHYS_OBJ_HAS_COLLIDER(obj0) || !PHYS_OBJ_HAS_COLLIDER(obj1)) { return c; }
 
   // ERR_PHYS_OBJ_T_NAN(obj0);
   // ERR_PHYS_OBJ_T_NAN(obj1);
@@ -22,7 +21,22 @@ collision_info_t phys_collision_check(phys_obj_t* obj0, phys_obj_t* obj1)
 	else if (obj0->collider.type == PHYS_COLLIDER_BOX && obj1->collider.type == PHYS_COLLIDER_BOX)
 	{
 		// c = phys_collision_check_aabb_v_aabb(obj0, obj1);
-		c = phys_collision_check_aabb_v_aabb_swept(obj0, obj1);
+    // c = phys_collision_check_aabb_v_aabb_swept(obj0, obj1);
+    
+    // check normal first and then using swept for tunneling
+		c = phys_collision_check_aabb_v_aabb(obj0, obj1);
+
+    
+    // @UNSURE: if obj hasnt moved enough dont do test bc. normal test gets done before
+    //          this is just for tunneling
+    collision_info_t swept;
+    swept.collision = false;
+    // if (!c.collision)
+    // if ( vec3_distance(obj0->pos, obj0->last_pos) > 0.1f ) // hasnt moved since last frame
+    if ( !c.collision && vec3_distance(obj0->pos, obj0->last_pos) > 0.1f ) // hasnt moved since last frame
+    { swept = phys_collision_check_aabb_v_aabb_swept(obj0, obj1); }
+    if (swept.collision) { c = swept; }
+    
 	}
 	// box v sphere
 	else if (obj0->collider.type == PHYS_COLLIDER_BOX && obj1->collider.type == PHYS_COLLIDER_SPHERE)
@@ -89,24 +103,11 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
   f32 radius = s0->collider.sphere.radius * ((s0->scl[0] + s0->scl[1] + s0->scl[2]) * 0.33f) +
                s1->collider.sphere.radius * ((s1->scl[0] + s1->scl[1] + s1->scl[2]) * 0.33f);
 
-  // @TMP: 
-  // if (s0->entity_idx != 13) { info.collision = false; return info; }
-
   // ray starting at sphere0 last pos pointing toward sphere0 cur pos
   ray_t ray;
   vec3_sub(pos0, last_pos0, ray.dir);
   vec3_normalize(ray.dir, ray.dir);
   vec3_copy(last_pos0, ray.pos);
-
-  // @TMP:
-  // vec3 ray_end;
-  // vec3_mul_f(ray.dir, 25.0f, ray_end);
-  // vec3_add(ray_end, ray.pos, ray_end);
-  // debug_draw_line_register(ray.pos, ray_end, RGB_F(0, 1, 0));
-  // debug_draw_sphere_register(ray.pos, 0.1f, RGB_F(0, 1, 0));
-  // 
-  // debug_draw_sphere_register(pos1, 0.1f, RGB_F(1, 0, 0));
-  // debug_draw_circle_sphere_register(pos1, radius, RGB_F(1, 0, 0)); 
   
   f32  dist = 0;
   vec3 hit_point;
@@ -118,31 +119,16 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
   // the ray hit but after where the sphere0 moved
   if (vec3_distance(pos0, hit_point) > vec3_distance(last_pos0, pos0))
   {
-    // debug_draw_sphere_register(hit_point, 0.2f, RGB_F(1, 1, 1));
     info.collision = false;
     return info;
   }
 
-  // @TMP:
-  // debug_draw_sphere_register(hit_point, 0.2f, RGB_F(0, 0, 1));
-  // info.collision = false;
-  // return info;
 
+  // get collission depth and dir
   info.depth = vec3_distance(pos0, hit_point);
-	// vec3_sub(hit_point, pos0, info.direction);
 	vec3_sub(pos0, pos1, info.direction);
 	vec3_normalize(info.direction, info.direction);
-
-  // // @TMP:
-	// vec3 end;
-	// vec3_mul_f(info.direction, info.depth, end);
-  // vec3_add(end, pos0, end);
-  // debug_draw_line_register(pos0, end, RGB_F(1, 0, 1));
-  // debug_draw_sphere_register(end, 0.1f, RGB_F(1, 0, 1));
-	
-  // @TMP:
-  // info.collision = false;
-
+  
   // @TODO: info.grounded
 
   return info;
@@ -259,8 +245,9 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
 	vec3_add(min, b1->collider.offset, min);
 	vec3_add(max, b1->collider.offset, max);
 
-  // @TMP: 
-  // if (b0->entity_idx != 13) { info.collision = false; return info; }
+  // // @TMP: 
+  // if (b0->entity_idx != 1)  { info.collision = false; return info; }
+  // if (b1->entity_idx != 10) { info.collision = false; return info; }
 
   // ray starting at sphere0 last pos pointing toward sphere0 cur pos
   ray_t ray;
@@ -268,18 +255,32 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
   vec3_normalize(ray.dir, ray.dir);
   vec3_copy(last_pos0, ray.pos);
 
-  // @TMP:
-  vec3 ray_end;
-  vec3_mul_f(ray.dir, 25.0f, ray_end);
-  vec3_add(ray_end, ray.pos, ray_end);
-  debug_draw_line_register(ray.pos, ray_end, RGB_F(0, 1, 0));
-  debug_draw_sphere_register(ray.pos, 0.1f, RGB_F(0, 1, 0));
-   
-  debug_draw_sphere_register(pos1, 0.1f, RGB_F(1, 0, 0));
-  phys_debug_draw_aabb(min, max, RGB_F(1, 0, 0));
+  // // @UNSURE: if obj hasnt moved enough dont do test bc. normal test gets done before
+  // //          this is just for tunneling
+  // if ( vec3_distance(pos0, last_pos0) < 0.1f ) // hasnt moved since last frame
+  // {
+  //   // debug_draw_sphere_register(pos0, 0.1f, RGB_F(0, 1, 0));
+  //   info.collision = false;
+  //   return info;
+  // }
+  // else
+  // {
+  //   // debug_draw_sphere_register(pos0, 0.1f, RGB_F(1, 0, 0));
+  //   vec3_sub(pos0, last_pos0, ray.dir);
+  //   vec3_normalize(ray.dir, ray.dir);
+  // }
+  debug_draw_sphere_register(pos0, 0.1f, RGB_F(1, 0, 0));
+
+  // // @TMP:
+  // vec3 ray_end;
+  // vec3_mul_f(ray.dir, 25.0f, ray_end);
+  // vec3_add(ray_end, ray.pos, ray_end);
+  // debug_draw_line_register(ray.pos, ray_end, RGB_F(0, 1, 0));
+  // debug_draw_sphere_register(ray.pos, 0.1f, RGB_F(0, 1, 0));
+  //  
+  // // debug_draw_sphere_register(pos1, 0.1f, RGB_F(1, 0, 0));
+  // phys_debug_draw_aabb(min, max, RGB_F(1, 0, 0));
  
-  // @TMP:
-  return info;
 
   f32  dist = 0;
   vec3 hit_point;
@@ -291,26 +292,37 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
   // the ray hit but after where the sphere0 moved
   if (vec3_distance(pos0, hit_point) > vec3_distance(last_pos0, pos0))
   {
-    debug_draw_sphere_register(hit_point, 0.2f, RGB_F(1, 1, 1));
+    // debug_draw_sphere_register(hit_point, 0.05f, RGB_F(1, 1, 1));
     info.collision = false;
     return info;
   }
 
-  // @TMP:
-  debug_draw_sphere_register(hit_point, 0.2f, RGB_F(0, 0, 1));
-  // info.collision = false;
-  // return info;
+  // // @TMP:
+  // debug_draw_sphere_register(hit_point, 0.2f, RGB_F(0, 0, 1));
+  // // info.collision = false;
+  // // return info;
 
-  info.depth = vec3_distance(pos0, hit_point);
-	vec3_sub(pos0, pos1, info.direction);
+  // info.depth = vec3_distance(pos0, hit_point);
+	
+  // get direction, bc. aabb can only be in one axis
+  vec3_sub(pos0, pos1, info.direction);
 	vec3_normalize(info.direction, info.direction);
+  vec3 dir_abs;
+  vec3_abs(info.direction, dir_abs);
+  info.direction[0] = dir_abs[0] >= dir_abs[1] && dir_abs[0] >= dir_abs[2] ? (info.direction[0] < 0 ? -1 : 1) : 0;
+  info.direction[1] = dir_abs[1] >  dir_abs[0] && dir_abs[1] >  dir_abs[2] ? (info.direction[1] < 0 ? -1 : 1) : 0;
+  info.direction[2] = dir_abs[2] >  dir_abs[0] && dir_abs[2] >  dir_abs[1] ? (info.direction[2] < 0 ? -1 : 1) : 0;
+  
+  info.depth = info.direction[0] != 0 ? fabs( pos0[0] - hit_point[0] ) :
+               info.direction[1] != 0 ? fabs( pos0[1] - hit_point[1] ) :
+               info.direction[2] != 0 ? fabs( pos0[2] - hit_point[2] ) : 0;
 
   // // @TMP:
-	vec3 end;
-	vec3_mul_f(info.direction, info.depth, end);
-  vec3_add(end, pos0, end);
-  debug_draw_line_register(pos0, end, RGB_F(1, 0, 1));
-  debug_draw_sphere_register(end, 0.1f, RGB_F(1, 0, 1));
+	// vec3 end;
+	// vec3_mul_f(info.direction, info.depth * 100.0f, end);
+  // vec3_add(end, pos0, end);
+  // debug_draw_line_register(pos0, end, RGB_F(1, 0, 1));
+  // debug_draw_sphere_register(end, 0.1f, RGB_F(1, 0, 1));
 	
   // @TMP:
   // info.collision = false;

@@ -141,17 +141,22 @@ typedef struct phys_obj_t
   vec3 pos;         // position
   vec3 scl;         // scale
   vec3 last_pos;    // position, last frame
+  // vec3 last_dir;    // last movement dir, in case pos & last_pos are same // @NOTE: old used in aabb_v_aabb_swept
   // no rotation, not supported
 
   phys_obj_flag flags;  // 'components' attached to obj
   rigidbody_t rb;
   collider_t  collider;
+
+  u32 exclude_flag; // @TODO:
+
 }phys_obj_t;
 #define PHYS_OBJ_T_INIT()     \
 {                             \
   .entity_idx = -1,           \
-  .pos        = { 0, 0, 0 },  \
-  .scl        = { 1, 1, 1 },  \
+  .pos        = { 0,  0, 0 }, \
+  .scl        = { 1,  1, 1 }, \
+  .last_pos   = { 0,  0, 0 }, \
   .flags      = 0,            \
   .rb = RIGIDBODY_T_INIT(),   \
 }
