@@ -21,9 +21,6 @@ void phys_collision_resolution(phys_obj_t* obj0, phys_obj_t* obj1, collision_inf
 	vec3_mul_f(info.direction, info.depth, dist);  // info.depth * 0.5f
 	vec3_add(obj0->pos, dist, obj0->pos);
  
-  // @TMP: @UNSURE: bc. swept collision may have huge dist
-  // vec3_min(dist, VEC3(0.1f), dist);
-
   // @TMP: debug
   // debug_draw_line_register(obj0->last_pos, obj0->pos, RGB_F(0, 1, 1));
   // debug_draw_sphere_register(obj0->pos,      0.02f, RGB_F(0, 1, 0));
@@ -36,7 +33,7 @@ void phys_collision_resolution(phys_obj_t* obj0, phys_obj_t* obj1, collision_inf
 		f32 ratio0 = obj1->rb.mass / obj0->rb.mass;
 		f32 ratio1 = obj0->rb.mass / obj1->rb.mass;
     
-   vec3 f0, f1;
+    vec3 f0, f1;
 		vec3_mul_f(dist,  force_mult * ratio0, f0);
 		vec3_mul_f(dist, -force_mult * ratio1, f1);
 

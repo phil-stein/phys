@@ -89,7 +89,7 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
                s1->collider.sphere.radius * ((s1->scl[0] + s1->scl[1] + s1->scl[2]) * 0.33f);
 
   // @TMP: 
-  if (s0->entity_idx != 13) { info.collision = false; return info; }
+  // if (s0->entity_idx != 13) { info.collision = false; return info; }
 
   // ray starting at sphere0 last pos pointing toward sphere0 cur pos
   ray_t ray;
@@ -97,9 +97,10 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
   vec3_sub(pos0, last_pos0, ray.dir);
   vec3_normalize(ray.dir, ray.dir);
   vec3_copy(last_pos0, ray.pos);
-  // start ray slightly behind last_pos0
-  vec3_sub(ray.pos, ray.dir, ray.pos);
-  vec3_sub(ray.pos, ray.dir, ray.pos);
+  
+  // // start ray slightly behind last_pos0
+  // vec3_sub(ray.pos, ray.dir, ray.pos);
+  // vec3_sub(ray.pos, ray.dir, ray.pos);
 
   vec3 ray_end;
   vec3_mul_f(ray.dir, 25.0f, ray_end);
@@ -115,31 +116,20 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
   info.collision = phys_collision_check_ray_v_sphere(&ray, pos1, radius, &dist, hit_point);
   
   if (!info.collision) { return info; }
+  
+  // the ray hit but after where the sphere0 moved
+  if (vec3_distance(pos0, hit_point) > vec3_distance(last_pos0, pos0))
+  {
+    debug_draw_sphere_register(hit_point, 0.2f, RGB_F(1, 1, 1));
+    info.collision = false;
+    return info;
+  }
 
   // @TMP:
-  debug_draw_sphere_register(hit_point, 0.2f, RGB_F(0, 0, 1));
+  // debug_draw_sphere_register(hit_point, 0.2f, RGB_F(0, 0, 1));
   // info.collision = false;
   // return info;
 
-  // @TMP: 
-  // static int collision_count = 0;
-  // collision_count++;
-  // _PF("collision: %d\n", collision_count);
-
-  // // total length between last and current s0 pos
-  // // minus the distance until hit 
-  // info.depth = fabs( vec3_distance(last_pos0, pos0) - dist );
-  // // info.depth = vec3_distance(last_pos0, pos0) - dist;
-  // // P_F32(vec3_distance(last_pos0, pos0)); 
-  // // P_F32(dist); 
-  // // P_F32(info.depth);
-
-	// // // vec3_sub(pos1, pos0, info.direction);
-	// vec3_sub(pos0, pos1, info.direction);
-	// vec3_normalize(info.direction, info.direction);
-  // // vec3_copy(ray.dir, info.direction);
-
-  // attemot v2
   info.depth = vec3_distance(pos0, hit_point);
 	vec3_sub(hit_point, pos0, info.direction);
 	// vec3_sub(pos0, hit_point, info.direction);
@@ -149,11 +139,14 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
 	vec3 end;
 	vec3_mul_f(info.direction, info.depth, end);
   vec3_add(end, pos0, end);
-  debug_draw_line_register(hit_point, end, RGB_F(1, 0, 0));
+  debug_draw_line_register(pos0, end, RGB_F(1, 0, 1));
   debug_draw_sphere_register(end, 0.1f, RGB_F(1, 0, 1));
 	
   // @TMP:
-  info.collision = false;
+  // info.collision = false;
+
+  // @TODO: info.grounded
+
   return info;
 }
 
