@@ -30,6 +30,7 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
 //       s2: second phys_obj with sphere collider
 //       switch_obj_places: if true treat s as the active obj, inverses info.direction
 collision_info_t phys_collision_check_aabb_v_sphere(phys_obj_t* b, phys_obj_t* s, bool switch_obj_places);
+collision_info_t phys_collision_check_aabb_v_sphere_swept(phys_obj_t* b, phys_obj_t* s, bool switch_obj_places);
 
 
 // --- inline funcs ---
@@ -44,36 +45,6 @@ collision_info_t phys_collision_check_aabb_v_sphere(phys_obj_t* b, phys_obj_t* s
 //       returns true if hit
 //       puts hit point in hit_out
 //       puts dist between ray->pos and hit_out in dist
-// INLINE bool phys_collision_check_ray_v_sphere(ray_t* ray, phys_obj_t* sphere, f32* dist, vec3 hit_out) 
-// {
-//   vec3 sphere_pos = VEC3_INIT(0);
-//   vec3_add(sphere->pos, sphere->collider.offset, sphere_pos);
-//   f32 radius = sphere->collider.sphere.radius * ( (sphere->scl[0] + sphere->scl[1] + sphere->scl[2]) * 0.33f);
-//   
-//   vec3 m;
-//   vec3_sub(ray->pos, sphere_pos, m); 
-//   f32  b = vec3_dot(m, ray->dir); 
-//   f32  c = vec3_dot(m, m) - ( radius * radius ); 
-//   
-//   // Exit if r’s origin outside s (c > 0) and r pointing away from s (b > 0) 
-//   if (c > 0.0f && b > 0.0f) { return false; }
-//   f32 discriminant = (b * b) - c; 
-//   
-//   // A negative discriminant corresponds to ray missing sphere 
-//   if (discriminant < 0.0f) { return false; }
-//   
-//   // Ray now found to intersect sphere, compute smallest dist value of intersection
-//   *dist = (-b) - (f32)(sqrt((f64)discriminant)); 
-//   
-//   // If t is negative, ray started inside sphere so clamp dist to zero 
-//   if ((*dist) < 0.0f) {  *dist = 0.0f; }
-// 
-//   // hit_out = p + (*t) * d; 
-//   vec3_mul_f(ray->dir, (*dist), hit_out);
-//   vec3_add(hit_out, ray->pos, hit_out);
-//   
-//   return true;
-// }
 INLINE bool phys_collision_check_ray_v_sphere(ray_t* ray, vec3 sphere_pos, f32 radius, f32* dist, vec3 hit_out) 
 { 
   vec3 m;

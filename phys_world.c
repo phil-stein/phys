@@ -19,6 +19,9 @@ phys_internal_trigger_callback*   trigger_callback   = NULL;
 #define TRIGGER_CALLBACK(a, b)    if (trigger_callback)   { trigger_callback((a), (b)); }
 
 
+phys_obj_combination_t* combination_arr = NULL;
+u32                     combination_arr_len = 0;
+
 // @TODO: move below update()
 
 void phys_obj_make_rb(f32 mass, f32 friction, phys_obj_t* obj)
@@ -79,6 +82,7 @@ void phys_add_obj_rb(u32 entity_idx, vec3 pos, f32 mass, f32 friction)
 
   arrput(phys_objs, obj);
   phys_objs_len++;
+  phys_generate_combinations(); // re-generate combinations after add
 }
 void phys_add_obj_box(u32 entity_idx, vec3 pos, vec3 scl, vec3 aabb[2], vec3 offset, bool is_trigger)
 {
@@ -92,6 +96,7 @@ void phys_add_obj_box(u32 entity_idx, vec3 pos, vec3 scl, vec3 aabb[2], vec3 off
 
   arrput(phys_objs, obj);
   phys_objs_len++;
+  phys_generate_combinations(); // re-generate combinations after add
 }
 void phys_add_obj_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 radius, vec3 offset, bool is_trigger)
 {
@@ -105,6 +110,7 @@ void phys_add_obj_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 radius, vec3 of
 
   arrput(phys_objs, obj);
   phys_objs_len++;
+  phys_generate_combinations(); // re-generate combinations after add
 }
 void phys_add_obj_rb_box(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, vec3 aabb[2], vec3 offset, bool is_trigger)
 {
@@ -119,6 +125,7 @@ void phys_add_obj_rb_box(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 frict
 
   arrput(phys_objs, obj);
   phys_objs_len++;
+  phys_generate_combinations(); // re-generate combinations after add
 }
 void phys_add_obj_rb_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, f32 radius, vec3 offset, bool is_trigger)
 {
@@ -133,6 +140,7 @@ void phys_add_obj_rb_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 fr
 
   arrput(phys_objs, obj);
   phys_objs_len++;
+  phys_generate_combinations(); // re-generate combinations after add
 }
 
 // @UNSURE: 
@@ -146,6 +154,7 @@ void phys_remove_obj(u32 entity_idx)
       phys_objs_len--;
     }
   }
+  phys_generate_combinations(); // re-generate combinations after remove 
 }
 
 void phys_rotate_box_y(u32 entity_idx)
@@ -184,6 +193,36 @@ phys_obj_t* phys_get_obj_arr(u32* len)
   return phys_objs;
 }
 
+// gen every combination of objs
+// so only have to check collision once per combination
+void phys_generate_combinations()
+{
+  // ARRFREE(combination_arr);
+  // combination_arr_len = 0;
+  // 
+  // // P_LINE_STR("combinations ");
+  // // P_INT(phys_objs_len);
+
+	// for (u32 a = 0; a < phys_objs_len; ++a)
+  // {
+  //   // // skip static objects
+  //   phys_obj_t* obj0 = &phys_objs[a];
+	// 	if (!PHYS_OBJ_HAS_COLLIDER(obj0)) { continue; }
+	//   
+  //   for (u32 b = a+1; b < phys_objs_len; ++b)
+  //   {
+  //     phys_obj_t* obj1 = &phys_objs[b];
+	// 	  if (!PHYS_OBJ_HAS_COLLIDER(obj1)) { continue; }
+  //     
+  //     // _PF("c[%d] a: %d, b: %d\n", combination_arr_len, a, b);
+  //     
+  //     phys_obj_combination_t c = { .a = a, .b = b };
+  //     arrput(combination_arr, c);
+  //     combination_arr_len++;
+  //   }
+  // }
+}
+
 void phys_init(phys_internal_collision_callback* _collision_callback, phys_internal_trigger_callback* _trigger_callback)
 {
   collision_callback = _collision_callback;
@@ -193,9 +232,116 @@ void phys_init(phys_internal_collision_callback* _collision_callback, phys_inter
 void phys_update(f32 dt)
 {
 
+  // @NOTE: tried only doing every combination
+  //        but, everything vibrating
+  //        bc. objects ontop of one another 
+  //        push into ground even though already 
+  //        collidding with ground
+  //
+  // phys_update_new(dt);
+
+  
+  // @NOTE: old implementation:
+  //        checks every obj against every other obj
+  //        meanind does both 
+  //        obj[1] v obj[2] and obj[2] v obj[1]
+  phys_update_old(dt);
+}
+
+void phys_update_new(f32 dt)
+{
+  // ---- dynamics ----
+	for (u32 i = 0; i < phys_objs_len; ++i) 
+  {
+    phys_obj_t* obj0 = &phys_objs[i];
+		if (!PHYS_OBJ_HAS_RIGIDBODY(obj0)) { continue; }
+    phys_dynamics_simulate(obj0, dt);
+  }
+
+  // --- collisions ---
+  phys_collision_t* collision_arr = NULL;
+  u32               collision_arr_len = 0;
+  // go through all combinations 
+  // skip objects that are static or not colliders
+	for (u32 i = 0; i < combination_arr_len; ++i) 
+	{
+    phys_obj_combination_t* combination = &combination_arr[i];
+    phys_obj_t* a = &phys_objs[combination->a];
+    phys_obj_t* b = &phys_objs[combination->b];
+    phys_obj_t* obj0 = PHYS_OBJ_HAS_RIGIDBODY(a) ? a : b;
+    phys_obj_t* obj1 = PHYS_OBJ_HAS_RIGIDBODY(a) ? b : a;
+    // phys_obj_t* obj0 = &phys_objs[combination->a];
+    // phys_obj_t* obj1 = &phys_objs[combination->b];
+    
+    // if obj0 doesnt have rigidbody, neither one has one
+    // so both static
+    if ( !PHYS_OBJ_HAS_RIGIDBODY(obj0) ) { continue; }
+    // _PF("obj0: %d, obj1: %d\n", obj0->entity_idx, obj1->entity_idx);
+    
+    // debug_draw_sphere_register(obj0->pos, 0.1f, RGB_F(1, 0, 0));
+    // debug_draw_line_register(obj0->pos, obj1->pos, RGB_F(0, 1, 0));
+		
+    if (!PHYS_OBJ_HAS_COLLIDER(obj0)) { continue; }
+    
+    obj0->collider.is_colliding = false; 
+	  obj0->collider.is_grounded  = false; 	
+
+    // test with other collider
+		if (!PHYS_OBJ_HAS_COLLIDER(obj1)) { continue; }
+
+		collision_info_t c = phys_collision_check(obj0, obj1);
+    obj0->collider.is_colliding = obj0->collider.is_colliding || c.collision;
+    obj0->collider.is_grounded  = obj0->collider.is_grounded  || c.grounded;
+    
+    // ---- collision response ----
+		if (c.collision)
+		{
+			// notify objects of collision
+			c.trigger = obj0->collider.is_trigger || obj1->collider.is_trigger;
+
+			// c.obj_idx = obj1->entity_idx;
+			// arrput(obj0->collider.infos, c);
+			// obj0->collider.infos_len++;
+
+			// c.obj_idx = obj0->entity_idx;
+			// arrput(obj1->collider.infos, c);
+			// obj1->collider.infos_len++;
+
+		  if (!c.trigger) // && PHYS_OBJ_HAS_RIGIDBODY(obj0)) // no response on trigger collisions
+			{
+        // // P_INT(obj1->entity_idx);
+				// phys_collision_resolution(obj0, obj1, c);
+        // COLLISION_CALLBACK(obj0->entity_idx, obj1->entity_idx);
+        phys_collision_t collision = { .obj0 = obj0, .obj1 = obj1, .c = c };
+        arrput(collision_arr, collision);
+        collision_arr_len++;
+			}
+      else //  if (PHYS_OBJ_HAS_RIGIDBODY(obj0))
+      {
+        TRIGGER_CALLBACK(obj0->entity_idx, obj1->entity_idx);
+      }
+		}
+	}
+
+  // --- resolution ---
+  // for (int i = collision_arr_len -1; i >= 0; --i)
+  for (int i = 0; i < collision_arr_len; ++i)
+  {
+    phys_collision_t* collision = &collision_arr[i];
+		phys_collision_resolution(collision->obj0, collision->obj1, collision->c);
+    COLLISION_CALLBACK(collision->obj0->entity_idx, collision->obj1->entity_idx);
+  }
+  ARRFREE(collision_arr);
+  collision_arr_len = 0;
+
+  return;
+}
+
+void phys_update_old(f32 dt)
+{
 	// go through all objs
   // skip objects that are static or not colliders
-	for (u32 i = 0; i < phys_objs_len; ++i) // array of rigidbodies
+	for (u32 i = 0; i < phys_objs_len; ++i) 
 	{
     phys_obj_t* obj0 = &phys_objs[i];
 
@@ -249,4 +395,3 @@ void phys_update(f32 dt)
 		}
 	}
 }
-

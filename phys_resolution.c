@@ -19,16 +19,30 @@ void phys_collision_resolution(phys_obj_t* obj0, phys_obj_t* obj1, collision_inf
   // position correction
 	vec3 dist;
 	vec3_mul_f(info.direction, info.depth, dist);  // info.depth * 0.5f
-	vec3_add(obj0->pos, dist, obj0->pos);
- 
-  // @TMP: debug
-  // debug_draw_line_register(obj0->last_pos, obj0->pos, RGB_F(0, 1, 1));
-  // debug_draw_sphere_register(obj0->pos,      0.02f, RGB_F(0, 1, 0));
-  // debug_draw_sphere_register(obj0->last_pos, 0.02f, RGB_F(1, 0, 0));
+  
+  // old, phys_update_old():
+  vec3_add(obj0->pos, dist, obj0->pos);
+  // // new, phys_update_new():
+  // if (obj1_has_rb)
+  // {
+  //   vec3_add(obj0->pos, dist, obj0->pos);
+  // 	vec3_sub(obj1->pos, dist, obj1->pos);
+  // }
+  // else
+  // {
+  //   vec3_mul_f(dist, 2.0f, dist);
+  //   vec3_add(obj0->pos, dist, obj0->pos);
+  // }
 
 	// impact force
-	const f32 force_mult = 500.0f; // 500.0f; // 1000.0f;
-	if (obj1_has_rb)
+  // old, phys_update_old():
+  const f32 force_mult = 500.0f; // 500.0f; // 1000.0f;
+	
+  // // new, phys_update_new():
+  // const f32 force_mult = 500.0f; // 500.0f; // 1000.0f;
+  // const f32 force_mult = 500.0f * 2.0f; // 500.0f; // 1000.0f;
+	
+  if (obj1_has_rb)
 	{
 		f32 ratio0 = obj1->rb.mass / obj0->rb.mass;
 		f32 ratio1 = obj0->rb.mass / obj1->rb.mass;
@@ -42,11 +56,6 @@ void phys_collision_resolution(phys_obj_t* obj0, phys_obj_t* obj1, collision_inf
 	}
 	else
 	{
-    // if (info.direction[1] != 0)
-    // { 
-    //   obj0->rb.velocity[1] = 0;
-    //   obj0->rb.force[1]    = 0;
-    // }
 		vec3 f0;
 		// 1.9 * force_mult, because not elastic
 		vec3_mul_f(dist, force_mult * 2.0f, f0);

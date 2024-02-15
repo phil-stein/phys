@@ -43,6 +43,19 @@ typedef struct box_collider_t
 }box_collider_t;
 #define P_BOX_COLLIDER_T(a)     { PF("box_collider_t: %s\n", #a); P_VEC3((a).aabb[0]); P_VEC3((a).aabb[1]); }
 
+INLINE f32 phys_aabb_smallest_side(vec3* aabb)
+{
+  f32* min = aabb[0];
+  f32* max = aabb[1];
+
+  f32 x = max[0] + fabs(min[0]);
+  f32 y = max[1] + fabs(min[1]);
+  f32 z = max[2] + fabs(min[2]);
+
+  return x <= y && x <= z ? x :
+         y <  x && y <  z ? y : z;
+}
+
 // @DOC: sphere collider, only need radius
 typedef struct sphere_collider_t
 {

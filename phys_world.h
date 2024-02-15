@@ -8,11 +8,30 @@
 extern "C" {
 #endif
 
+
 // @DOC: func type for collision callbacks
 typedef void (phys_internal_collision_callback)(int id_01, int id_02);
 // @DOC: func type for trigger collision callbacks
 typedef void (phys_internal_trigger_callback)(int id_01, int id_02);
 
+
+typedef struct
+{
+  int a;
+  int b;
+}phys_obj_combination_t;
+
+typedef struct
+{
+  phys_obj_t* obj0;
+  phys_obj_t* obj1;
+  collision_info_t c;
+}phys_collision_t;
+
+
+// @DOC: gen every combination of objs
+//       so only have to check collision once per combination
+void phys_generate_combinations();
 
 // @DOC: initialize physics engine, set callbacks, or NULL, call before any oher calls to phys
 //       _collision_callback: NULL or gets called on collision
@@ -22,6 +41,14 @@ void phys_init(phys_internal_collision_callback* _collision_callback, phys_inter
 // @DOC: call once a frame to update the state of the physics engine
 //       dt: pass delta time, the time passed since last frame
 void phys_update(f32 dt);
+
+// @DOC: only checks every possible combination
+void phys_update_new(f32 dt);
+
+// @DOC: checks every obj against every other obj
+//       meanind does both 
+//       obj[1] v obj[2] and obj[2] v obj[1]
+void phys_update_old(f32 dt);
 
 
 // @DOC: add rigidbody to phys_obj_t
