@@ -359,6 +359,7 @@ void phys_update_old(f32 dt)
 		for (int j = 0; j < phys_objs_len; ++j) // array of colliders
 		{
 			if (j == i) { continue; }
+			// if (j == i) { break; } // this would ensure all combinations only get checked once
 		  if (!PHYS_OBJ_HAS_COLLIDER(obj0)) { continue; }
       phys_obj_t* obj1 = &phys_objs[j];
 

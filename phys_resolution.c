@@ -22,15 +22,17 @@ void phys_collision_resolution(phys_obj_t* obj0, phys_obj_t* obj1, collision_inf
   
   // old, phys_update_old():
   vec3_add(obj0->pos, dist, obj0->pos);
+  
   // // new, phys_update_new():
   // if (obj1_has_rb)
   // {
+  //   vec3_mul_f(dist, 0.5f, dist);
   //   vec3_add(obj0->pos, dist, obj0->pos);
   // 	vec3_sub(obj1->pos, dist, obj1->pos);
   // }
   // else
   // {
-  //   vec3_mul_f(dist, 2.0f, dist);
+  //   // vec3_mul_f(dist, 2.0f, dist);
   //   vec3_add(obj0->pos, dist, obj0->pos);
   // }
 
