@@ -45,8 +45,10 @@ collision_info_t phys_collision_check_aabb_v_sphere_swept(phys_obj_t* b, phys_ob
 //       returns true if hit
 //       puts hit point in hit_out
 //       puts dist between ray->pos and hit_out in dist
-INLINE bool phys_collision_check_ray_v_sphere(ray_t* ray, vec3 sphere_pos, f32 radius, f32* dist, vec3 hit_out) 
-{ 
+// INLINE bool phys_collision_check_ray_v_sphere(ray_t* ray, vec3 sphere_pos, f32 radius, f32* dist, vec3 hit_out) 
+INLINE bool phys_collision_check_ray_v_sphere(ray_t* ray, vec3 sphere_pos, f32 radius, ray_hit_t* hit) 
+{
+  hit->hit = false; 
   vec3 m;
   vec3_sub(ray->pos, sphere_pos, m); 
   f32  b = vec3_dot(m, ray->dir); 
@@ -60,24 +62,29 @@ INLINE bool phys_collision_check_ray_v_sphere(ray_t* ray, vec3 sphere_pos, f32 r
   if (discriminant < 0.0f) { return false; }
   
   // Ray now found to intersect sphere, compute smallest dist value of intersection
-  *dist = (-b) - (f32)(sqrt((f64)discriminant)); 
+  hit->dist = (-b) - (f32)(sqrt((f64)discriminant)); 
   
   // If t is negative, ray started inside sphere so clamp dist to zero 
-  if ((*dist) < 0.0f) {  *dist = 0.0f; }
+  if ((hit->dist) < 0.0f) {  hit->dist = 0.0f; }
 
-  // hit_out = p + (*t) * d; 
-  vec3_mul_f(ray->dir, (*dist), hit_out);
-  vec3_add(hit_out, ray->pos, hit_out);
+  // hit_point = p + (*t) * d; 
+  vec3_mul_f(ray->dir, (hit->dist), hit->hit_point);
+  vec3_add(hit->hit_point, ray->pos, hit->hit_point);
   
+  vec3_sub(hit->hit_point, sphere_pos, hit->normal);
+  vec3_normalize(hit->normal, hit->normal);
+  
+  hit->hit = true; 
   return true;
 }
-INLINE bool phys_collision_check_ray_v_sphere_obj(ray_t* ray, phys_obj_t* sphere, f32* dist, vec3 hit_out)
+// INLINE bool phys_collision_check_ray_v_sphere_obj(ray_t* ray, phys_obj_t* sphere, f32* dist, vec3 hit_out)
+INLINE bool phys_collision_check_ray_v_sphere_obj(ray_t* ray, phys_obj_t* sphere, ray_hit_t* hit)
 {
   if (!PHYS_OBJ_HAS_COLLIDER(sphere) || sphere->collider.type != PHYS_COLLIDER_SPHERE) { return false; }
   vec3 sphere_pos = VEC3_INIT(0);
   vec3_add(sphere->pos, sphere->collider.offset, sphere_pos);
   f32 radius = sphere->collider.sphere.radius * ( (sphere->scl[0] + sphere->scl[1] + sphere->scl[2]) * 0.33f);
-  return phys_collision_check_ray_v_sphere(ray, sphere_pos, radius, dist, hit_out); 
+  return phys_collision_check_ray_v_sphere(ray, sphere_pos, radius, hit); 
 }
  
 
@@ -87,8 +94,11 @@ INLINE bool phys_collision_check_ray_v_sphere_obj(ray_t* ray, phys_obj_t* sphere
 //       returns true if hit
 //       puts hit point in hit_out
 //       puts dist between ray->pos and hit_out in dist
-INLINE bool phys_collision_check_ray_v_aabb(ray_t* ray, vec3 min, vec3 max, f32* dist, vec3 hit_out) 
+// INLINE bool phys_collision_check_ray_v_aabb(ray_t* ray, vec3 min, vec3 max, f32* dist, vec3 hit_out) 
+INLINE bool phys_collision_check_ray_v_aabb(ray_t* ray, vec3 min, vec3 max, ray_hit_t* hit) 
 {
+  hit->hit = false; 
+  
   f32 t1 = (min[0] - ray->pos[0]) / ray->dir[0];
   f32 t2 = (max[0] - ray->pos[0]) / ray->dir[0];
   f32 t3 = (min[1] - ray->pos[1]) / ray->dir[1];
@@ -107,16 +117,23 @@ INLINE bool phys_collision_check_ray_v_aabb(ray_t* ray, vec3 min, vec3 max, f32*
   if (tmin > tmax) { return false; }
 
   // if tmin <  0 dist is tmax
-  if (tmin < 0.0f) { *dist = tmax; }
-  else           { *dist = tmin; }
+  if (tmin < 0.0f) { hit->dist = tmax; }
+  else             { hit->dist = tmin; }
   
-  // set hit_out
-  vec3_mul_f(ray->dir, *dist, hit_out);
-  vec3_add(hit_out, ray->pos, hit_out);
+  // set ray_hit_t 
+  vec3_mul_f(ray->dir, hit->dist, hit->hit_point);
+  vec3_add(hit->hit_point, ray->pos, hit->hit_point);
 
+  // @TODO:
+  // vec3 pos = { min[0] + max[0], min[1] + max[1], min[2] + max[2] };
+  // vec3_sub(hit->hit_point, pos, hit->normal);
+  // vec3_normalize(hit->normal, hit->normal);
+
+  hit->hit = true; 
   return true;
 }
-INLINE bool phys_collision_check_ray_v_aabb_obj(ray_t* ray, phys_obj_t* box, f32* dist, vec3 hit_out) 
+// INLINE bool phys_collision_check_ray_v_aabb_obj(ray_t* ray, phys_obj_t* box, f32* dist, vec3 hit_out) 
+INLINE bool phys_collision_check_ray_v_aabb_obj(ray_t* ray, phys_obj_t* box, ray_hit_t* hit) 
 {
   if (!PHYS_OBJ_HAS_COLLIDER(box) || box->collider.type != PHYS_COLLIDER_BOX) { return false; }
 	
@@ -130,8 +147,11 @@ INLINE bool phys_collision_check_ray_v_aabb_obj(ray_t* ray, phys_obj_t* box, f32
 	vec3_add(max, box->pos, max);
 	vec3_add(min, box->collider.offset, min);
 	vec3_add(max, box->collider.offset, max);
-  
-  return phys_collision_check_ray_v_aabb(ray, min, max, dist, hit_out);
+ 
+  bool rtn = phys_collision_check_ray_v_aabb(ray, min, max, hit);
+  vec3_sub(hit->hit_point, box->pos, hit->normal);
+  vec3_normalize(hit->normal, hit->normal);
+  return rtn;
 }
 
 

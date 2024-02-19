@@ -234,6 +234,8 @@ typedef struct
   f32  dist;
   vec3 hit_point;
   int  entity_idx;
+  vec3 normal;
+
 } ray_hit_t;
 
 

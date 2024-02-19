@@ -1,4 +1,5 @@
 #include "phys_collision.h"
+#include "phys/phys_types.h"
 #include "phys_debug_draw.h"
 
 // ---- collision checks ----
@@ -139,15 +140,16 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
   vec3_normalize(ray.dir, ray.dir);
   vec3_copy(last_pos0, ray.pos);
   
-  f32  dist = 0;
-  vec3 hit_point;
-  info.collision = phys_collision_check_ray_v_sphere(&ray, pos1, radius, &dist, hit_point);
+  // f32  dist = 0;
+  // vec3 hit_point;
+  ray_hit_t hit;
+  info.collision = phys_collision_check_ray_v_sphere(&ray, pos1, radius, &hit); // &dist, hit_point);
   
   if (!info.collision) { return info; }
  
   // @TODO: use dist for this
   // the ray hit but after where the sphere0 moved
-  if (vec3_distance(pos0, hit_point) > vec3_distance(last_pos0, pos0))
+  if (vec3_distance(pos0, hit.hit_point) > vec3_distance(last_pos0, pos0))
   {
     info.collision = false;
     return info;
@@ -155,7 +157,7 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
 
 
   // get collission depth and dir
-  info.depth = vec3_distance(pos0, hit_point);
+  info.depth = vec3_distance(pos0, hit.hit_point);
 	vec3_sub(pos0, pos1, info.direction);
 	vec3_normalize(info.direction, info.direction);
   
@@ -281,9 +283,10 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
   vec3_normalize(ray.dir, ray.dir);
   vec3_copy(last_pos0, ray.pos);
 
-  f32  dist = 0;
-  vec3 hit_point;
-  info.collision = phys_collision_check_ray_v_aabb(&ray, min, max, &dist, hit_point);
+  // f32  dist = 0;
+  // vec3 hit_point;
+  ray_hit_t hit;
+  info.collision = phys_collision_check_ray_v_aabb(&ray, min, max, &hit); // &dist, hit_point);
   
   if (!info.collision) { return info; }
 
@@ -292,7 +295,7 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
   // P_F32(vec3_distance(last_pos0, pos0));
   // @TODO: use dist for this
   // the ray hit but after where the sphere0 moved
-  if (vec3_distance(pos0, hit_point) > vec3_distance(last_pos0, pos0))
+  if (vec3_distance(pos0, hit.hit_point) > vec3_distance(last_pos0, pos0))
   {
     info.collision = false;
     return info;
@@ -307,9 +310,9 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
   info.direction[1] = dir_abs[1] >  dir_abs[0] && dir_abs[1] >  dir_abs[2] ? (info.direction[1] < 0 ? -1 : 1) : 0;
   info.direction[2] = dir_abs[2] >  dir_abs[0] && dir_abs[2] >  dir_abs[1] ? (info.direction[2] < 0 ? -1 : 1) : 0;
   
-  info.depth = info.direction[0] != 0 ? fabs( pos0[0] - hit_point[0] ) :
-               info.direction[1] != 0 ? fabs( pos0[1] - hit_point[1] ) :
-               info.direction[2] != 0 ? fabs( pos0[2] - hit_point[2] ) : 0;
+  info.depth = info.direction[0] != 0 ? fabs( pos0[0] - hit.hit_point[0] ) :
+               info.direction[1] != 0 ? fabs( pos0[1] - hit.hit_point[1] ) :
+               info.direction[2] != 0 ? fabs( pos0[2] - hit.hit_point[2] ) : 0;
 
   // @TODO: info.grounded
 
@@ -430,15 +433,16 @@ collision_info_t phys_collision_check_aabb_v_sphere_swept(phys_obj_t* b, phys_ob
   // phys_debug_draw_aabb(min, max, RGB_F(1, 0, 0));
  
 
-  f32  dist = 0;
-  vec3 hit_point;
-  info.collision = phys_collision_check_ray_v_aabb(&ray, min, max, &dist, hit_point);
+  // f32  dist = 0;
+  // vec3 hit_point;
+  ray_hit_t hit;
+  info.collision = phys_collision_check_ray_v_aabb(&ray, min, max, &hit); // &dist, hit_point);
   
   if (!info.collision) { return info; }
  
   // @TODO: use dist for this
   // the ray hit but after where the sphere0 moved
-  if (vec3_distance(pos0, hit_point) > vec3_distance(last_pos0, pos0))
+  if (vec3_distance(pos0, hit.hit_point) > vec3_distance(last_pos0, pos0))
   {
     // debug_draw_sphere_register(hit_point, 0.05f, RGB_F(1, 1, 1));
     info.collision = false;
@@ -465,19 +469,19 @@ collision_info_t phys_collision_check_aabb_v_sphere_swept(phys_obj_t* b, phys_ob
   info.direction[1] = dir_abs[1] >  dir_abs[0] && dir_abs[1] >  dir_abs[2] ? (info.direction[1] < 0 ? -1 : 1) : 0;
   info.direction[2] = dir_abs[2] >  dir_abs[0] && dir_abs[2] >  dir_abs[1] ? (info.direction[2] < 0 ? -1 : 1) : 0;
   
-  info.depth = info.direction[0] != 0 ? fabs( pos0[0] - hit_point[0] ) :
-               info.direction[1] != 0 ? fabs( pos0[1] - hit_point[1] ) :
-               info.direction[2] != 0 ? fabs( pos0[2] - hit_point[2] ) : 0;
+  info.depth = info.direction[0] != 0 ? fabs( pos0[0] - hit.hit_point[0] ) :
+               info.direction[1] != 0 ? fabs( pos0[1] - hit.hit_point[1] ) :
+               info.direction[2] != 0 ? fabs( pos0[2] - hit.hit_point[2] ) : 0;
 
   // // switch dir if sphere was obj0 not obj1
   // if (switch_obj_places) { vec3_mul_f(info.direction, -1.0f, info.direction); }
 
-  // @TMP:
-	vec3 end;
-	vec3_mul_f(info.direction, info.depth * 100.0f, end);
-  vec3_add(end, pos0, end);
-  debug_draw_line_register(pos0, end, RGB_F(1, 0, 1));
-  debug_draw_sphere_register(end, 0.1f, RGB_F(1, 0, 1));
+  // // @TMP:
+	// vec3 end;
+	// vec3_mul_f(info.direction, info.depth * 100.0f, end);
+  // vec3_add(end, pos0, end);
+  // debug_draw_line_register(pos0, end, RGB_F(1, 0, 1));
+  // debug_draw_sphere_register(end, 0.1f, RGB_F(1, 0, 1));
 	
   // @TMP:
   // info.collision = false;

@@ -21,6 +21,9 @@ INLINE bool phys_ray_cast_len(ray_t* ray, ray_hit_t* out, f32 max_len)
   return rtn && out->dist <= max_len;
 }
 
+bool phys_ray_cast_mask_dbg(ray_t* ray, ray_hit_t* out, u32* mask_arr, int mask_arr_len, const char* _file, const char* _func, const int _line);
+#define phys_ray_cast_mask(ray, out, mask_arr, mask_arr_len) phys_ray_cast_mask_dbg(ray, out, mask_arr, mask_arr_len, __FILE__, __func__, __LINE__)
+
 #ifdef __cplusplus
 } // extern c
 #endif
