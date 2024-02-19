@@ -1,4 +1,5 @@
 #include "phys_ray.h"
+#include "core/core_data.h"
 #include "phys_world.h"
 #include "phys_collision.h"
 #include "phys_debug_draw.h"
@@ -7,7 +8,7 @@
 
 
 // @TODO: @OPTIMIZE: optimize this, chunks
-bool phys_ray_cast(ray_t* ray, ray_hit_t* out)
+bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char* _func, const int _line)
 {
   u32 len = 0;
   phys_obj_t* arr = phys_get_obj_arr(&len);
@@ -78,11 +79,11 @@ bool phys_ray_cast(ray_t* ray, ray_hit_t* out)
 
   // set out to hit
   *out = hit_arr[idx];
-  
+ 
   debug_draw_line_register_t(ray->pos, hit_arr[idx].hit_point, RGB_F(0, 1, 1), 1.0f);
   debug_draw_sphere_register_t(hit_arr[idx].hit_point, 0.1f, RGB_F(0, 1, 0), 1.0f);
   
-  ARRFREE(hit_arr);
-    
+  ARRFREE(hit_arr);    
+
   return true;
 }

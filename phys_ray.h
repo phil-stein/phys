@@ -1,7 +1,8 @@
 #ifndef PHYS_PHYS_RAY_H
 #define PHYS_PHYS_RAY_H
 
-#include "phys/phys_types.h" 
+#include "global/global.h"
+#include "phys_types.h" 
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,8 +12,14 @@ extern "C" {
 // @DOC: check every object against ray
 //       returns true if hit 
 //       out gets set to hit info
-bool phys_ray_cast(ray_t* ray, ray_hit_t* out);
+bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char* _func, const int _line);
+#define phys_ray_cast(ray, out) phys_ray_cast_dbg(ray, out, __FILE__, __func__, __LINE__)
 
+INLINE bool phys_ray_cast_len(ray_t* ray, ray_hit_t* out, f32 max_len)
+{
+  bool rtn = phys_ray_cast(ray, out);
+  return rtn && out->dist <= max_len;
+}
 
 #ifdef __cplusplus
 } // extern c

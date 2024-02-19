@@ -286,7 +286,10 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
   info.collision = phys_collision_check_ray_v_aabb(&ray, min, max, &dist, hit_point);
   
   if (!info.collision) { return info; }
- 
+
+  // P_F32(dist);
+  // P_F32(vec3_distance(pos0, hit_point));
+  // P_F32(vec3_distance(last_pos0, pos0));
   // @TODO: use dist for this
   // the ray hit but after where the sphere0 moved
   if (vec3_distance(pos0, hit_point) > vec3_distance(last_pos0, pos0))
