@@ -13,6 +13,7 @@ extern "C" {
 //       out gets set to hit info
 bool phys_ray_cast(ray_t* ray, ray_hit_t* out);
 
+
 #ifdef __cplusplus
 } // extern c
 #endif

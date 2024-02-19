@@ -1,3 +1,4 @@
+#include "phys_ray.h"
 #include "phys_world.h"
 #include "phys_collision.h"
 #include "phys_debug_draw.h"
@@ -78,8 +79,8 @@ bool phys_ray_cast(ray_t* ray, ray_hit_t* out)
   // set out to hit
   *out = hit_arr[idx];
   
-  debug_draw_line_register(ray->pos, hit_arr[idx].hit_point, RGB_F(0, 1, 1));
-  debug_draw_sphere_register(hit_arr[idx].hit_point, 0.1f, RGB_F(0, 1, 0));
+  debug_draw_line_register_t(ray->pos, hit_arr[idx].hit_point, RGB_F(0, 1, 1), 1.0f);
+  debug_draw_sphere_register_t(hit_arr[idx].hit_point, 0.1f, RGB_F(0, 1, 0), 1.0f);
   
   ARRFREE(hit_arr);
     
