@@ -22,7 +22,7 @@ bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char
   {
     phys_obj_t* obj = &arr[i];
     
-    if (!PHYS_OBJ_HAS_COLLIDER(obj)) { continue; }
+    if (!PHYS_OBJ_HAS_COLLIDER(obj) || obj->collider.is_trigger) { continue; }
 
     // f32  dist = 0;
     // vec3 hit_point;
@@ -101,7 +101,7 @@ bool phys_ray_cast_mask_dbg(ray_t* ray, ray_hit_t* out, u32* mask_arr, int mask_
     { if (obj->entity_idx == mask_arr[m]) { skip = true; break; } }
     if (skip) { continue; }
 
-    if (!PHYS_OBJ_HAS_COLLIDER(obj)) { continue; }
+    if (!PHYS_OBJ_HAS_COLLIDER(obj) || obj->collider.is_trigger) { continue; }
 
     // f32  dist = 0;
     // vec3 hit_point;

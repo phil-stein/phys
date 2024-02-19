@@ -5,9 +5,10 @@
 extern "C" {
 #endif
 
+#include "core/debug/debug_draw.h"
+
 #ifdef PHYS_DEBUG
 
-#include "core/debug/debug_draw.h"
 #include "phys/phys_types.h"
 
 // @DOC: color given to velocity debug display
