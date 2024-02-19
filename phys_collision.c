@@ -135,7 +135,7 @@ collision_info_t phys_collision_check_sphere_v_sphere_swept(phys_obj_t* s0, phys
                s1->collider.sphere.radius * ((s1->scl[0] + s1->scl[1] + s1->scl[2]) * 0.33f);
 
   // ray starting at sphere0 last pos pointing toward sphere0 cur pos
-  ray_t ray;
+  ray_t ray = RAY_T_INIT_ZERO();
   vec3_sub(pos0, last_pos0, ray.dir);
   vec3_normalize(ray.dir, ray.dir);
   vec3_copy(last_pos0, ray.pos);
@@ -278,7 +278,7 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
 	vec3_add(max, b1->collider.offset, max);
 
   // ray starting at sphere0 last pos pointing toward sphere0 cur pos
-  ray_t ray;
+  ray_t ray = RAY_T_INIT_ZERO();
   vec3_sub(pos0, last_pos0, ray.dir);
   vec3_normalize(ray.dir, ray.dir);
   vec3_copy(last_pos0, ray.pos);
@@ -417,7 +417,7 @@ collision_info_t phys_collision_check_aabb_v_sphere_swept(phys_obj_t* b, phys_ob
   // P_F32(min_dist);
 
   // ray starting at sphere0 last pos pointing toward sphere0 cur pos
-  ray_t ray;
+  ray_t ray = RAY_T_INIT_ZERO();
   vec3_sub(pos0, last_pos0, ray.dir);
   vec3_normalize(ray.dir, ray.dir);
   vec3_copy(last_pos0, ray.pos);

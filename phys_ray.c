@@ -50,15 +50,8 @@ bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char
   }
 
   // no hits
-  if (hit_arr_len <= 0) 
-  { 
-    vec3 ray_end;
-    vec3_mul_f(ray->dir, 25, ray_end);
-    vec3_add(ray_end, ray->pos, ray_end);
-    debug_draw_line_register(ray->pos, ray_end, RGB_F(1, 0, 0));
+  if (hit_arr_len <= 0) { goto no_hit_exit; }
 
-    return false; 
-  }
 
   // get closest hit
   int idx = 0;
@@ -69,7 +62,11 @@ bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char
 
   // set out to hit
   *out = hit_arr[idx];
+  // if len <= 0 ignore len
+  out->hit = ray->len <= 0.0f || out->dist <= ray->len;
+  if (!out->hit) { goto no_hit_exit; }
  
+  // debug lines on hit
   debug_draw_line_register_t(ray->pos, hit_arr[idx].hit_point, RGB_F(0, 1, 1), 1.0f);
   debug_draw_sphere_register_t(hit_arr[idx].hit_point, 0.1f, RGB_F(0, 1, 0), 1.0f);
   vec3 norm;
@@ -79,7 +76,17 @@ bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char
   
   ARRFREE(hit_arr);    
 
-  return true;
+  return out->hit;
+
+no_hit_exit:;
+  vec3 ray_end;
+  if (ray->len <= 0.0f)
+  { vec3_mul_f(ray->dir, 25, ray_end); }
+  else
+  { vec3_mul_f(ray->dir, ray->len, ray_end); }
+  vec3_add(ray_end, ray->pos, ray_end);
+  debug_draw_line_register(ray->pos, ray_end, RGB_F(1, 0, 0));
+  return false;
 }
 
 // @TODO: @OPTIMIZE: optimize this, chunks
@@ -129,15 +136,7 @@ bool phys_ray_cast_mask_dbg(ray_t* ray, ray_hit_t* out, u32* mask_arr, int mask_
   }
 
   // no hits
-  if (hit_arr_len <= 0) 
-  { 
-    vec3 ray_end;
-    vec3_mul_f(ray->dir, 25, ray_end);
-    vec3_add(ray_end, ray->pos, ray_end);
-    debug_draw_line_register(ray->pos, ray_end, RGB_F(1, 0, 0));
-
-    return false; 
-  }
+  if (hit_arr_len <= 0) { goto no_hit_exit; }
 
   // get closest hit
   int idx = 0;
@@ -148,7 +147,11 @@ bool phys_ray_cast_mask_dbg(ray_t* ray, ray_hit_t* out, u32* mask_arr, int mask_
 
   // set out to hit
   *out = hit_arr[idx];
+  // if len <= 0 ignore len
+  out->hit = ray->len <= 0.0f || out->dist <= ray->len;
+  if (!out->hit) { goto no_hit_exit; }
  
+  // debug lines on hit
   debug_draw_line_register_t(ray->pos, hit_arr[idx].hit_point, RGB_F(0, 1, 1), 1.0f);
   debug_draw_sphere_register_t(hit_arr[idx].hit_point, 0.1f, RGB_F(0, 1, 0), 1.0f);
   vec3 norm;
@@ -158,5 +161,15 @@ bool phys_ray_cast_mask_dbg(ray_t* ray, ray_hit_t* out, u32* mask_arr, int mask_
   
   ARRFREE(hit_arr);    
 
-  return true;
+  return out->hit;
+  
+no_hit_exit:;
+  vec3 ray_end;
+  if (ray->len <= 0.0f)
+  { vec3_mul_f(ray->dir, 25, ray_end); }
+  else
+  { vec3_mul_f(ray->dir, ray->len, ray_end); }
+  vec3_add(ray_end, ray->pos, ray_end);
+  debug_draw_line_register(ray->pos, ray_end, RGB_F(1, 0, 0));
+  return false; 
 }

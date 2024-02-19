@@ -225,8 +225,22 @@ typedef struct
 {
   vec3 pos;
   vec3 dir;
+  f32  len; // <= 0.0f, means length is ignored
 
 } ray_t;
+#define RAY_T_INIT_ZERO()         \
+{                                 \
+  .pos = { 0.0f, 0.0f, 0.0f },    \
+  .dir = { 0.0f, 0.0f, 0.0f },    \
+  .len = -1.0f,                   \
+}
+#define RAY_T_INIT_LEN(_pos, _dir, _len)      \
+{                                             \
+  .pos = { (_pos)[0], (_pos)[1], (_pos)[2] }, \
+  .dir = { (_dir)[0], (_dir)[1], (_dir)[2] }, \
+  .len = (_len),                              \
+}
+#define RAY_T_INIT(_pos, _dir)  RAY_T_INIT_LEN(_pos, _dir, -1.0f)
 
 typedef struct
 {
