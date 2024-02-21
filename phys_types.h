@@ -226,6 +226,8 @@ typedef struct
   vec3 pos;
   vec3 dir;
   f32  len; // <= 0.0f, means length is ignored
+  u32* mask_arr;
+  int  mask_arr_len;
 
 } ray_t;
 #define RAY_T_INIT_ZERO()         \
@@ -233,14 +235,40 @@ typedef struct
   .pos = { 0.0f, 0.0f, 0.0f },    \
   .dir = { 0.0f, 0.0f, 0.0f },    \
   .len = -1.0f,                   \
+  .mask_arr = NULL,               \
+}
+#define RAY_T_INIT(_pos, _dir, _len, _mask_arr, _mask_arr_len)  \
+{                                                               \
+  .pos = { (_pos)[0], (_pos)[1], (_pos)[2] },                   \
+  .dir = { (_dir)[0], (_dir)[1], (_dir)[2] },                   \
+  .len = (_len),                                                \
+  .mask_arr     = _mask_arr,                                    \
+  .mask_arr_len = _mask_arr_len,                                \
+}
+#define RAY_T_INIT_MASK(_pos, _dir, _mask_arr, _mask_arr_len)   \
+{                                                               \
+  .pos = { (_pos)[0], (_pos)[1], (_pos)[2] },                   \
+  .dir = { (_dir)[0], (_dir)[1], (_dir)[2] },                   \
+  .len = -1.0f,                                                 \
+  .mask_arr     = _mask_arr,                                    \
+  .mask_arr_len = _mask_arr_len,                                \
 }
 #define RAY_T_INIT_LEN(_pos, _dir, _len)      \
 {                                             \
   .pos = { (_pos)[0], (_pos)[1], (_pos)[2] }, \
   .dir = { (_dir)[0], (_dir)[1], (_dir)[2] }, \
   .len = (_len),                              \
+  .mask_arr = NULL,               \
+  .mask_arr_len = 0,              \
 }
-#define RAY_T_INIT(_pos, _dir)  RAY_T_INIT_LEN(_pos, _dir, -1.0f)
+#define RAY_T_INIT_SIMPLE(_pos, _dir)         \
+{                                             \
+  .pos = { (_pos)[0], (_pos)[1], (_pos)[2] }, \
+  .dir = { (_dir)[0], (_dir)[1], (_dir)[2] }, \
+  .len = -1.0f,                               \
+  .mask_arr = NULL,                           \
+  .mask_arr_len = 0,                          \
+}
 
 typedef struct
 {
