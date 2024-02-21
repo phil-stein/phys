@@ -229,6 +229,8 @@ typedef struct
   u32* mask_arr;
   int  mask_arr_len;
 
+  bool draw_debug;
+
 } ray_t;
 #define RAY_T_INIT_ZERO()         \
 {                                 \
@@ -236,6 +238,7 @@ typedef struct
   .dir = { 0.0f, 0.0f, 0.0f },    \
   .len = -1.0f,                   \
   .mask_arr = NULL,               \
+  .draw_debug = false,            \
 }
 #define RAY_T_INIT(_pos, _dir, _len, _mask_arr, _mask_arr_len)  \
 {                                                               \
@@ -244,6 +247,7 @@ typedef struct
   .len = (_len),                                                \
   .mask_arr     = _mask_arr,                                    \
   .mask_arr_len = _mask_arr_len,                                \
+  .draw_debug = false,                                          \
 }
 #define RAY_T_INIT_MASK(_pos, _dir, _mask_arr, _mask_arr_len)   \
 {                                                               \
@@ -252,14 +256,16 @@ typedef struct
   .len = -1.0f,                                                 \
   .mask_arr     = _mask_arr,                                    \
   .mask_arr_len = _mask_arr_len,                                \
+  .draw_debug = false,                                          \
 }
 #define RAY_T_INIT_LEN(_pos, _dir, _len)      \
 {                                             \
   .pos = { (_pos)[0], (_pos)[1], (_pos)[2] }, \
   .dir = { (_dir)[0], (_dir)[1], (_dir)[2] }, \
   .len = (_len),                              \
-  .mask_arr = NULL,               \
-  .mask_arr_len = 0,              \
+  .mask_arr = NULL,                           \
+  .mask_arr_len = 0,                          \
+  .draw_debug = false,                        \
 }
 #define RAY_T_INIT_SIMPLE(_pos, _dir)         \
 {                                             \
@@ -268,6 +274,7 @@ typedef struct
   .len = -1.0f,                               \
   .mask_arr = NULL,                           \
   .mask_arr_len = 0,                          \
+  .draw_debug = false,                        \
 }
 
 typedef struct
