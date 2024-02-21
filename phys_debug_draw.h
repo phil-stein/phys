@@ -72,10 +72,15 @@ void phys_debug_draw_box_collider_func(phys_obj_t* obj, f32* color);
 #else // PHYS_DEBUG
 
 #define phys_debug_draw_velocity(obj)  
+
 #define phys_debug_draw_aabb(min, max, color)        
-#define phys_debug_draw_collider(obj, c)      
+
+#define phys_debug_draw_collider(obj)      
+#define phys_debug_draw_collider_col(obj, c)         
+
 #define phys_debug_draw_box_collider_col(obj, c)
 #define phys_debug_draw_box_collider(obj)  
+
 #define phys_debug_draw_sphere_collider_col(obj, c)
 #define phys_debug_draw_sphere_collider(obj)       
 
