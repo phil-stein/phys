@@ -5,6 +5,10 @@
 #include "phys/phys_debug_draw.h"
 #include "core/debug/debug_draw.h"
 
+#ifdef TERRAIN_ADDON
+#include "core/core_data.h"
+#endif
+
 #include "stb/stb_ds.h"
 
 
@@ -13,10 +17,10 @@ phys_obj_t* phys_objs = NULL;
 u32 phys_objs_len = 0;
 
 // callbacks, macros to check for null
-phys_internal_collision_callback* collision_callback = NULL;
-phys_internal_trigger_callback*   trigger_callback   = NULL;
-#define COLLISION_CALLBACK(a, b)  if (collision_callback) { collision_callback((a), (b)); }
-#define TRIGGER_CALLBACK(a, b)    if (trigger_callback)   { trigger_callback((a), (b)); }
+phys_internal_collision_callback* phys_collision_callback = NULL;
+phys_internal_trigger_callback*   phys_trigger_callback   = NULL;
+#define COLLISION_CALLBACK(a, b)  if (phys_collision_callback) { phys_collision_callback((a), (b)); }
+#define TRIGGER_CALLBACK(a, b)    if (phys_trigger_callback)   { phys_trigger_callback((a), (b)); }
 
 
 phys_obj_combination_t* combination_arr = NULL;
@@ -225,8 +229,8 @@ void phys_generate_combinations()
 
 void phys_init(phys_internal_collision_callback* _collision_callback, phys_internal_trigger_callback* _trigger_callback)
 {
-  collision_callback = _collision_callback;
-  trigger_callback   = _trigger_callback;
+  phys_collision_callback = _collision_callback;
+  phys_trigger_callback   = _trigger_callback;
 }
 
 void phys_update(f32 dt)
@@ -321,6 +325,13 @@ void phys_update_new(f32 dt)
         TRIGGER_CALLBACK(obj0->entity_idx, obj1->entity_idx);
       }
 		}
+    // terrain collision
+    for (int i = 0; i < core_data->terrain_chunks_len; ++i) 
+    { 
+      if (!core_data->terrain_chunks[i].loaded || !core_data->terrain_chunks[i].visible) { continue; }
+      // ...
+    }
+
 	}
 
   // --- resolution ---

@@ -7,6 +7,7 @@
 // const vec3 gravity = { 0.0f, -9.89f, 0.0f };
 // const vec3 gravity = { 0.0f, -12.0f, 0.0f };
 const vec3 gravity = { 0.0f, -18.0f, 0.0f };
+// const vec3 gravity = { 0.0f, -40.0f, 0.0f };
 
 // ---- dynamics ----
 
@@ -50,14 +51,10 @@ void phys_dynamics_simulate(phys_obj_t* obj, f32 dt)
 	//    vec3_copy(VEC3(0), obj->rb.force);
  
 
-	// pos += vel * dt 
-	vec3 v_dt;
-	vec3_mul_f(obj->rb.velocity, dt, v_dt);
-	vec3_copy(obj->pos, obj->last_pos); // set last frames pos
-	vec3_add(obj->pos, v_dt, obj->pos);
 
 	// acceleration accumulator
-	vec3_add((f32*)gravity, obj->rb.force, obj->rb.force);
+	// vec3_add((f32*)gravity, obj->rb.force, obj->rb.force);
+	obj->rb.force[1] += gravity[1];
 	vec3_mul_f(obj->rb.force, dt, obj->rb.force);
 
 	// vel += force
@@ -66,7 +63,14 @@ void phys_dynamics_simulate(phys_obj_t* obj, f32 dt)
 	// vel *= pow(drag, dt), increase friction when colliding
   f32 drag = (PHYS_OBJ_HAS_COLLIDER(obj) && obj->collider.is_colliding) ? obj->rb.drag * obj->rb.friction : obj->rb.drag;
   f32 dt_drag = powf(drag, dt);
+  // f32 dt_drag = drag * dt;
 	vec3_mul_f(obj->rb.velocity, dt_drag, obj->rb.velocity);
+
+	// pos += vel * dt 
+	vec3 v_dt;
+	vec3_mul_f(obj->rb.velocity, dt, v_dt);
+	vec3_copy(obj->pos, obj->last_pos); // set last frames pos
+	vec3_add(obj->pos, v_dt, obj->pos);
 
 	// reset accumulator
 	vec3_copy(VEC3(0), obj->rb.force);
