@@ -78,12 +78,12 @@ bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char
   // debug lines on hit
   if (ray->draw_debug)
   {
-    debug_draw_line_register_t(ray->pos, hit_arr[idx].hit_point, RGB_F(0, 1, 1), 1.0f);
-    debug_draw_sphere_register_t(hit_arr[idx].hit_point, 0.1f, RGB_F(0, 1, 0), 1.0f);
+    debug_draw_line_t(ray->pos, hit_arr[idx].hit_point, RGB_F(0, 1, 1), 1.0f);
+    debug_draw_sphere_t(hit_arr[idx].hit_point, 0.1f, RGB_F(0, 1, 0), 1.0f);
     vec3 norm;
     vec3_copy(hit_arr[idx].hit_point, norm);
     vec3_add(norm, hit_arr[idx].normal, norm);
-    debug_draw_line_register_t(hit_arr[idx].hit_point, norm, RGB_F(0, 1, 0), 1.0f);
+    debug_draw_line_t(hit_arr[idx].hit_point, norm, RGB_F(0, 1, 0), 1.0f);
   }
   
   ARRFREE(hit_arr);    
@@ -99,7 +99,7 @@ no_hit_exit:;
     else
     { vec3_mul_f(ray->dir, ray->len, ray_end); }
     vec3_add(ray_end, ray->pos, ray_end);
-    debug_draw_line_register(ray->pos, ray_end, RGB_F(1, 0, 0));
+    debug_draw_line(ray->pos, ray_end, RGB_F(1, 0, 0));
   }
   return false;
 }

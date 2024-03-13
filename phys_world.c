@@ -444,7 +444,7 @@ void phys_update_old(f32 dt)
         // int z_idx = (int)ceil( (z_perc * col_z_len) );
         int idx = x_idx + (z_idx * (int)core_data->terrain_collider_positions_z_len);
         pos  = &chunk->collider_points[idx*3];
-        debug_draw_sphere_register(pos, 1.0f, RGB_F(1, 0, 0)); 
+        debug_draw_sphere(pos, 1.0f, RGB_F(1, 0, 0)); 
         // P_V(idx);
         
         // if (idx+1 % core_data->terrain_collider_positions_x_len != 0 && 
@@ -491,7 +491,7 @@ void phys_update_old(f32 dt)
         P_INFO("hit terrain: %d\n", obj0->entity_idx);
         phys_debug_draw_collider_col(obj0, RGB_F(1, 0, 0));
         REMOVE_FLAG(obj0->flags, (phys_obj_flag)PHYS_HAS_RIGIDBODY);
-        debug_draw_sphere_register_t(obj0->pos, 0.75f, RGB_F(1, 0, 0), 100.0f);
+        debug_draw_sphere_t(obj0->pos, 0.75f, RGB_F(1, 0, 0), 100.0f);
         AFTER_TERRAIN_COLLISION:;
 	    }
       #endif // TERRAIN_ADDON

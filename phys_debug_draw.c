@@ -10,7 +10,7 @@ void phys_debug_draw_velocity_func(phys_obj_t* obj)
 	vec3_copy(obj->rb.velocity, v_scaled);
 	vec3_mul_f(v_scaled, 0.2f, v_scaled);
 	vec3_add(obj->pos, v_scaled, v_pos);
-  debug_draw_line_register(obj->pos, v_pos, PHYS_DEBUG_VELOCITY_COLOR); 
+  debug_draw_line(obj->pos, v_pos, PHYS_DEBUG_VELOCITY_COLOR); 
 }
 
 void phys_debug_draw_collider_func(phys_obj_t* obj, f32* color)
@@ -35,7 +35,7 @@ void phys_debug_draw_sphere_collider_func(phys_obj_t* obj, f32* color)
   // debug_draw_circle_register(VEC3_XYZ(1, 1, 0), obj->pos, radius, color);
   // debug_draw_circle_register(VEC3_XYZ(1, 0, 1), obj->pos, radius, color);
   // debug_draw_circle_register(VEC3_XYZ(0, 1, 1), obj->pos, radius, color);
-  debug_draw_circle_sphere_register(obj->pos, radius, color);
+  debug_draw_circle_sphere(obj->pos, radius, color);
 }
 
 void phys_debug_draw_aabb_func(vec3 min, vec3 max, f32* color)
@@ -58,7 +58,7 @@ void phys_debug_draw_aabb_func(vec3 min, vec3 max, f32* color)
   };
 #undef V
 
-  debug_draw_box_register(points, color);
+  debug_draw_box(points, color);
 }
 
 void phys_debug_draw_box_collider_func(phys_obj_t* obj, f32* color)

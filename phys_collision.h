@@ -299,12 +299,15 @@ INLINE bool phys_collision_check_aabb_v_triangle(vec3 c, vec3 e, vec3 v0, vec3 v
   if (phys_collision_check_aabb_v_triangle_sat_test(triangle_normal, e, v0, v1, v2, u0, u1, u2)) { return false; }
 
   // Passed testing for all 13 seperating axis that exist!
-  debug_draw_sphere_register_t(c, 1.0f, RGB_F(0, 1, 0), 100.0f);
+  debug_draw_sphere_t(c, 1.0f, RGB_F(0, 1, 0), 100.0f);
   return true;
 }
 INLINE bool phys_collision_check_aabb_v_triangle_obj(phys_obj_t* box, vec3 v0, vec3 v1, vec3 v2)
 {
-  return phys_collision_check_aabb_v_triangle(box->pos, box->collider.box.aabb[1], v0, v1, v2);
+  vec3 pos; 
+	vec3_add(box->pos, box->collider.offset, pos);
+  debug_draw_sphere(pos, 0.5f, RGB_F(0, 1, 0));
+  return phys_collision_check_aabb_v_triangle(pos, box->collider.box.aabb[1], v0, v1, v2);
 }
 
 #ifdef __cplusplus
