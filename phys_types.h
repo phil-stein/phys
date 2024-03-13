@@ -48,9 +48,9 @@ INLINE f32 phys_aabb_smallest_side(vec3* aabb)
   f32* min = aabb[0];
   f32* max = aabb[1];
 
-  f32 x = max[0] + fabs(min[0]);
-  f32 y = max[1] + fabs(min[1]);
-  f32 z = max[2] + fabs(min[2]);
+  f32 x = max[0] + fabsf(min[0]);
+  f32 y = max[1] + fabsf(min[1]);
+  f32 z = max[2] + fabsf(min[2]);
 
   return x <= y && x <= z ? x :
          y <  x && y <  z ? y : z;
@@ -150,7 +150,7 @@ typedef enum phys_obj_flag
 // @DOC: the objs simulated and attached to an entity
 typedef struct phys_obj_t
 {
-  u32  entity_idx;  // id of entity the phys_obj_t simulates
+  int  entity_idx;  // id of entity the phys_obj_t simulates
   vec3 pos;         // position
   vec3 scl;         // scale
   vec3 last_pos;    // position, last frame
@@ -226,7 +226,7 @@ typedef struct
   vec3 pos;
   vec3 dir;
   f32  len; // <= 0.0f, means length is ignored
-  u32* mask_arr;
+  int* mask_arr;
   int  mask_arr_len;
 
   bool draw_debug;

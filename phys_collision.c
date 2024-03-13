@@ -1,5 +1,5 @@
 #include "phys_collision.h"
-#include "phys/phys_types.h"
+#include "phys_types.h"
 #include "phys_debug_draw.h"
 
 // ---- collision checks ----
@@ -34,7 +34,7 @@ collision_info_t phys_collision_check(phys_obj_t* obj0, phys_obj_t* obj1)
     f32 obj0_min = phys_aabb_smallest_side(obj0->collider.box.aabb);
     f32 obj1_min = phys_aabb_smallest_side(obj1->collider.box.aabb);
     f32 min_dist = obj0_min <= obj1_min ? obj0_min : obj1_min;
-    min_dist *= 0.25; // 0.5f;  // @NOTE: 0.5f should be enough but this is more precise prob.
+    min_dist *= 0.25f; // 0.5f;  // @NOTE: 0.5f should be enough but this is more precise prob.
   
     if ( !c.collision && vec3_distance(obj0->pos, obj0->last_pos) > min_dist) // 0.1f ) // hasnt moved since last frame
     { 
@@ -67,7 +67,7 @@ collision_info_t phys_collision_check(phys_obj_t* obj0, phys_obj_t* obj1)
     swept.collision = false;
 
     // get smallest length of aabb's or radius, as min dist travelled by obj for swept check
-    f32 box_min    = phys_aabb_smallest_side(box->collider.box.aabb) * 0.25;
+    f32 box_min    = phys_aabb_smallest_side(box->collider.box.aabb) * 0.25f;
     f32 sphere_min = sphere->collider.sphere.radius * ((sphere->scl[0] + sphere->scl[1] + sphere->scl[2]) * 0.33f);
     f32 min_dist   = MIN(box_min, sphere_min);
   
@@ -230,12 +230,12 @@ collision_info_t phys_collision_check_aabb_v_aabb(phys_obj_t* b0, phys_obj_t* b1
 
   // @NOTE: the direction on everything but y1 hasn't been checked, and might be wrong
   info.grounded = false;
-  if      (info.depth == x1) { vec3_copy(VEC3_X(-1), info.direction); }
-  else if (info.depth == y1) { vec3_copy(VEC3_Y(-1), info.direction); info.grounded = true; }
-  else if (info.depth == z1) { vec3_copy(VEC3_Z(-1), info.direction); }
-  else if (info.depth == x2) { vec3_copy(VEC3_X(-1),  info.direction); }
-  else if (info.depth == y2) { vec3_copy(VEC3_Y(-1),  info.direction); }
-  else                       { vec3_copy(VEC3_Z(-1),  info.direction); }
+  if      (F32_EQ(info.depth, x1)) { vec3_copy(VEC3_X(-1), info.direction); }
+  else if (F32_EQ(info.depth, y1)) { vec3_copy(VEC3_Y(-1), info.direction); info.grounded = true; }
+  else if (F32_EQ(info.depth, z1)) { vec3_copy(VEC3_Z(-1), info.direction); }
+  else if (F32_EQ(info.depth, x2)) { vec3_copy(VEC3_X(-1),  info.direction); }
+  else if (F32_EQ(info.depth, y2)) { vec3_copy(VEC3_Y(-1),  info.direction); }
+  else                             { vec3_copy(VEC3_Z(-1),  info.direction); }
 
   // if (info.collision) { PF("| had collision: %.2f\n", info.depth); }
   
@@ -310,9 +310,9 @@ collision_info_t phys_collision_check_aabb_v_aabb_swept(phys_obj_t* b0, phys_obj
   info.direction[1] = dir_abs[1] >  dir_abs[0] && dir_abs[1] >  dir_abs[2] ? (info.direction[1] < 0 ? -1 : 1) : 0;
   info.direction[2] = dir_abs[2] >  dir_abs[0] && dir_abs[2] >  dir_abs[1] ? (info.direction[2] < 0 ? -1 : 1) : 0;
   
-  info.depth = info.direction[0] != 0 ? fabs( pos0[0] - hit.hit_point[0] ) :
-               info.direction[1] != 0 ? fabs( pos0[1] - hit.hit_point[1] ) :
-               info.direction[2] != 0 ? fabs( pos0[2] - hit.hit_point[2] ) : 0;
+  info.depth = !F32_EQ(info.direction[0], 0.0f) ? fabsf( pos0[0] - hit.hit_point[0] ) :
+               !F32_EQ(info.direction[1], 0.0f) ? fabsf( pos0[1] - hit.hit_point[1] ) :
+               !F32_EQ(info.direction[2], 0.0f) ? fabsf( pos0[2] - hit.hit_point[2] ) : 0;
 
   // @TODO: info.grounded
 
@@ -374,6 +374,7 @@ collision_info_t phys_collision_check_aabb_v_sphere(phys_obj_t* b, phys_obj_t* s
 
 collision_info_t phys_collision_check_aabb_v_sphere_swept(phys_obj_t* b, phys_obj_t* s, bool switch_obj_places)
 {
+  (void)switch_obj_places;
   // treat s as point and raycast against b with its aabb scaled by s's radius 
   // this way only one raycast is required
   // raycast is from s last pos toward s current pos
@@ -469,9 +470,9 @@ collision_info_t phys_collision_check_aabb_v_sphere_swept(phys_obj_t* b, phys_ob
   info.direction[1] = dir_abs[1] >  dir_abs[0] && dir_abs[1] >  dir_abs[2] ? (info.direction[1] < 0 ? -1 : 1) : 0;
   info.direction[2] = dir_abs[2] >  dir_abs[0] && dir_abs[2] >  dir_abs[1] ? (info.direction[2] < 0 ? -1 : 1) : 0;
   
-  info.depth = info.direction[0] != 0 ? fabs( pos0[0] - hit.hit_point[0] ) :
-               info.direction[1] != 0 ? fabs( pos0[1] - hit.hit_point[1] ) :
-               info.direction[2] != 0 ? fabs( pos0[2] - hit.hit_point[2] ) : 0;
+  info.depth = !F32_EQ(info.direction[0], 0.0f) ? fabsf( pos0[0] - hit.hit_point[0] ) :
+               !F32_EQ(info.direction[1], 0.0f) ? fabsf( pos0[1] - hit.hit_point[1] ) :
+               !F32_EQ(info.direction[2], 0.0f) ? fabsf( pos0[2] - hit.hit_point[2] ) : 0;
 
   // // switch dir if sphere was obj0 not obj1
   // if (switch_obj_places) { vec3_mul_f(info.direction, -1.0f, info.direction); }

@@ -59,29 +59,29 @@ void phys_obj_make_box(vec3 aabb[2], vec3 offset, bool is_trigger, phys_obj_t* o
 
 // @DOC: add physics object with rigidbody, but no collider
 //       entity_id: id of entity to attach to
-void phys_add_obj_rb(u32 entity_idx, vec3 pos, f32 mass, f32 friction);
+void phys_add_obj_rb(int entity_idx, vec3 pos, f32 mass, f32 friction);
 // @DOC: add physics object with box collider but no rigidbody
 //       entity_id: id of entity to attach to
 //       aabb: aabb[0] is min, aabb[1] is max
-void phys_add_obj_box(u32 entity_idx, vec3 pos, vec3 scl, vec3 aabb[2], vec3 offset, bool is_trigger);
+void phys_add_obj_box(int entity_idx, vec3 pos, vec3 scl, vec3 aabb[2], vec3 offset, bool is_trigger);
 // @DOC: add physics object with sphere collider but no rigidbody
 //       entity_id: id of entity to attach to
-void phys_add_obj_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 radius, vec3 offset, bool is_trigger);
+void phys_add_obj_sphere(int entity_idx, vec3 pos, vec3 scl, f32 radius, vec3 offset, bool is_trigger);
 // @DOC: add physics object with box collider and rigidbody
 //       entity_id: id of entity to attach to
 //       aabb: aabb[0] is min aabb[1] is max
-void phys_add_obj_rb_box(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, vec3 aabb[2], vec3 offset, bool is_trigger);
+void phys_add_obj_rb_box(int entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, vec3 aabb[2], vec3 offset, bool is_trigger);
 // @DOC: add phys obj with rigidbody and sphere collider
 //       entity_id: id of entity to attach to
-void phys_add_obj_rb_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, f32 radius, vec3 offset, bool is_trigger);
+void phys_add_obj_rb_sphere(int entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, f32 radius, vec3 offset, bool is_trigger);
 
   // @DOC: remove object, by the entity its attached to
 //       entity_idx: phys obj with phys_obj_t.entity_idx == entity_idx gets removed
-void phys_remove_obj(u32 entity_idx);
+void phys_remove_obj(int entity_idx);
 
 // @DOC: 'roatate' aabb 90° around y
 //       entity_idx: phys obj with phys_obj_t.entity_idx == entity_idx gets rotated
-void phys_rotate_box_y(u32 entity_idx);
+void phys_rotate_box_y(int entity_idx);
 
 
 // @DOC: remove all objects

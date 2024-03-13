@@ -1,9 +1,11 @@
 #include "phys/phys_world.h"
+#include "global/global_types.h"
 #include "phys/phys_dynamics.h"
 #include "phys/phys_resolution.h"
 #include "phys/phys_collision.h"
 #include "phys/phys_debug_draw.h"
 #include "core/debug/debug_draw.h"
+#include "phys/phys_types.h"
 
 #ifdef TERRAIN_ADDON
 #include "core/core_data.h"
@@ -74,7 +76,7 @@ void phys_obj_make_sphere(f32 radius, vec3 offset, bool is_trigger, phys_obj_t* 
   obj->collider.infos_len = 0;
 }
 
-void phys_add_obj_rb(u32 entity_idx, vec3 pos, f32 mass, f32 friction)
+void phys_add_obj_rb(int entity_idx, vec3 pos, f32 mass, f32 friction)
 {
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
@@ -88,7 +90,7 @@ void phys_add_obj_rb(u32 entity_idx, vec3 pos, f32 mass, f32 friction)
   phys_objs_len++;
   phys_generate_combinations(); // re-generate combinations after add
 }
-void phys_add_obj_box(u32 entity_idx, vec3 pos, vec3 scl, vec3 aabb[2], vec3 offset, bool is_trigger)
+void phys_add_obj_box(int entity_idx, vec3 pos, vec3 scl, vec3 aabb[2], vec3 offset, bool is_trigger)
 {
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
@@ -102,7 +104,7 @@ void phys_add_obj_box(u32 entity_idx, vec3 pos, vec3 scl, vec3 aabb[2], vec3 off
   phys_objs_len++;
   phys_generate_combinations(); // re-generate combinations after add
 }
-void phys_add_obj_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 radius, vec3 offset, bool is_trigger)
+void phys_add_obj_sphere(int entity_idx, vec3 pos, vec3 scl, f32 radius, vec3 offset, bool is_trigger)
 {
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
@@ -116,7 +118,7 @@ void phys_add_obj_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 radius, vec3 of
   phys_objs_len++;
   phys_generate_combinations(); // re-generate combinations after add
 }
-void phys_add_obj_rb_box(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, vec3 aabb[2], vec3 offset, bool is_trigger)
+void phys_add_obj_rb_box(int entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, vec3 aabb[2], vec3 offset, bool is_trigger)
 {
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
@@ -131,7 +133,7 @@ void phys_add_obj_rb_box(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 frict
   phys_objs_len++;
   phys_generate_combinations(); // re-generate combinations after add
 }
-void phys_add_obj_rb_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, f32 radius, vec3 offset, bool is_trigger)
+void phys_add_obj_rb_sphere(int entity_idx, vec3 pos, vec3 scl, f32 mass, f32 friction, f32 radius, vec3 offset, bool is_trigger)
 {
   phys_obj_t obj = PHYS_OBJ_T_INIT();
   obj.entity_idx = entity_idx;
@@ -148,20 +150,20 @@ void phys_add_obj_rb_sphere(u32 entity_idx, vec3 pos, vec3 scl, f32 mass, f32 fr
 }
 
 // @UNSURE: 
-void phys_remove_obj(u32 entity_idx)
+void phys_remove_obj(int entity_idx)
 {
-  for (u32 i = 0; i < phys_objs_len; ++i)
+  for (int i = 0; i < (int)phys_objs_len; ++i)
   {
     if (phys_objs[i].entity_idx == entity_idx) 
     { 
-      arrdel(phys_objs, i); 
+      arrdel(phys_objs, (u32)i); 
       phys_objs_len--;
     }
   }
   phys_generate_combinations(); // re-generate combinations after remove 
 }
 
-void phys_rotate_box_y(u32 entity_idx)
+void phys_rotate_box_y(int entity_idx)
 {
   for (u32 i = 0; i < phys_objs_len; ++i)
   {
@@ -325,18 +327,11 @@ void phys_update_new(f32 dt)
         TRIGGER_CALLBACK(obj0->entity_idx, obj1->entity_idx);
       }
 		}
-    // terrain collision
-    for (int i = 0; i < core_data->terrain_chunks_len; ++i) 
-    { 
-      if (!core_data->terrain_chunks[i].loaded || !core_data->terrain_chunks[i].visible) { continue; }
-      // ...
-    }
-
 	}
-
+   
   // --- resolution ---
   // for (int i = collision_arr_len -1; i >= 0; --i)
-  for (int i = 0; i < collision_arr_len; ++i)
+  for (int i = 0; i < (int)collision_arr_len; ++i)
   {
     phys_collision_t* collision = &collision_arr[i];
 		phys_collision_resolution(collision->obj0, collision->obj1, collision->c);
@@ -352,7 +347,7 @@ void phys_update_old(f32 dt)
 {
 	// go through all objs
   // skip objects that are static or not colliders
-	for (u32 i = 0; i < phys_objs_len; ++i) 
+	for (int i = 0; i < (int)phys_objs_len; ++i) 
 	{
     phys_obj_t* obj0 = &phys_objs[i];
 
@@ -367,7 +362,7 @@ void phys_update_old(f32 dt)
 	  obj0->collider.is_grounded  = false; 	
 
     // test with all other colliders
-		for (int j = 0; j < phys_objs_len; ++j) // array of colliders
+		for (int j = 0; j < (int)phys_objs_len; ++j) // array of colliders
 		{
 			if (j == i) { continue; }
 			// if (j == i) { break; } // this would ensure all combinations only get checked once
@@ -403,7 +398,103 @@ void phys_update_old(f32 dt)
           TRIGGER_CALLBACK(obj0->entity_idx, obj1->entity_idx);
         }
 		  }
+      // vec3 p0;
+      // vec3 p1;
+      // vec3 p2;
+      // if (phys_collision_check_aabb_v_triangle(obj0->pos, obj0->collider.box.aabb[1], p0, p1, p2) )
+      // {
+      //   obj0->rb.force[1] += 200.0f;
+      // }
 
+      goto AFTER_TERRAIN_COLLISION; // skip for now
+      #ifdef TERRAIN_ADDON
+      f32* pos  = NULL;
+      f32* pos1 = NULL;
+      f32* pos2 = NULL;
+
+      // @TMP:
+      if (obj0->collider.type != PHYS_COLLIDER_BOX) { continue; }
+      
+      // terrain collision
+      for (int chunk_idx = 0; chunk_idx < (int)core_data->terrain_chunks_len; ++chunk_idx) 
+      {
+
+        if (!core_data->terrain_chunks[chunk_idx].loaded || !core_data->terrain_chunks[chunk_idx].visible) { continue; }
+        terrain_chunk_t* chunk = &core_data->terrain_chunks[chunk_idx];
+
+        // get collider_position using cam_pos
+        // map cam-pos to 0.0 <-> 1.0 range inside the chunk
+        f32 x = ( obj0->pos[0] + ( core_data->terrain_scl * 0.5f));
+        f32 z = ( obj0->pos[2] + ( core_data->terrain_scl * 0.5f));
+        f32 col_x_len = (f32)core_data->terrain_collider_positions_x_len;
+        f32 col_z_len = (f32)core_data->terrain_collider_positions_z_len;
+        f32 x_perc = ( x / core_data->terrain_scl );
+        f32 z_perc = ( z / core_data->terrain_scl );
+        if (x_perc > 1.0f || x_perc < 0.0f || z_perc > 1.0f || z_perc < 0.0f) { continue; }
+        // PF("%.2f, %.2f\n", x_perc, z_perc);
+        
+        // 1. map 0.0<->1,0 to the positions arrays length's in both dimesnions
+        // 2. take those two numbers and turn them into idx for the one dimensional array
+        // floor(x +0.5): 1.49 -> 1.0, 1.51 -> 2.0
+        int x_idx = (int)floor( (x_perc * col_x_len) + 0.5f );
+        int z_idx = (int)floor( (z_perc * col_z_len) + 0.5f );
+        // int x_idx = (int)floor( (x_perc * col_x_len) );
+        // int z_idx = (int)floor( (z_perc * col_z_len) );
+        // int x_idx = (int)ceil( (x_perc * col_x_len) );
+        // int z_idx = (int)ceil( (z_perc * col_z_len) );
+        int idx = x_idx + (z_idx * (int)core_data->terrain_collider_positions_z_len);
+        pos  = &chunk->collider_points[idx*3];
+        debug_draw_sphere_register(pos, 1.0f, RGB_F(1, 0, 0)); 
+        // P_V(idx);
+        
+        // if (idx+1 % core_data->terrain_collider_positions_x_len != 0 && 
+        //     idx+1 % core_data->terrain_z_len != 0)
+        // {
+          pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len-1) *3];
+          pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len) *3];
+          // if (phys_collision_check_aabb_v_triangle(obj0->pos, obj0->collider.box.aabb[1], pos, pos1, pos2) )
+          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
+          { goto TERRAIN_COLLISION; }
+          pos1 = &chunk->collider_points[(idx - 1) *3];
+          pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len-1) *3];
+          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
+          { goto TERRAIN_COLLISION; }
+          pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len   ) *3];
+          pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len +1) *3];
+          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
+          { goto TERRAIN_COLLISION; }
+          pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len +1) *3];
+          pos2 = &chunk->collider_points[((u32)idx +1) *3];
+          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
+          { goto TERRAIN_COLLISION; }
+          pos1 = &chunk->collider_points[((u32)idx +1) *3];
+          pos2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len +1) *3];
+          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
+          { goto TERRAIN_COLLISION; }
+          pos1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len +1) *3];
+          pos2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len) *3];
+          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
+          { goto TERRAIN_COLLISION; }
+          pos1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len) *3];
+          pos2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len -1) *3];
+          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
+          { goto TERRAIN_COLLISION; }
+          pos1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len -1) *3];
+          pos2 = &chunk->collider_points[((u32)idx - 1) *3];
+          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
+          { goto TERRAIN_COLLISION; }
+        // }
+        // else { }
+
+        goto AFTER_TERRAIN_COLLISION;
+        TERRAIN_COLLISION:;
+        P_INFO("hit terrain: %d\n", obj0->entity_idx);
+        phys_debug_draw_collider_col(obj0, RGB_F(1, 0, 0));
+        REMOVE_FLAG(obj0->flags, (phys_obj_flag)PHYS_HAS_RIGIDBODY);
+        debug_draw_sphere_register_t(obj0->pos, 0.75f, RGB_F(1, 0, 0), 100.0f);
+        AFTER_TERRAIN_COLLISION:;
+	    }
+      #endif // TERRAIN_ADDON
 		}
 	}
 }

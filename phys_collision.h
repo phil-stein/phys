@@ -1,7 +1,11 @@
 #ifndef PHYS_PHYS_COLLISION_H
 #define PHYS_PHYS_COLLISION_H
 
+#include "global/global.h"
+#include "math/math_inc.h"
+#include "math/math_vec3.h"
 #include "phys/phys_types.h" 
+#include "phys/phys_debug_draw.h" 
 
 #ifdef __cplusplus
 extern "C" {
@@ -137,7 +141,7 @@ INLINE bool phys_collision_check_ray_v_aabb_obj(ray_t* ray, phys_obj_t* box, ray
 {
   if (!PHYS_OBJ_HAS_COLLIDER(box) || box->collider.type != PHYS_COLLIDER_BOX) { return false; }
 	
-    // add position & offset to min & max of both colliders
+  // add position & offset to min & max of both colliders
 	vec3 min, max;
 	vec3_copy(box->collider.box.aabb[0], min);
 	vec3_copy(box->collider.box.aabb[1], max);
@@ -154,6 +158,154 @@ INLINE bool phys_collision_check_ray_v_aabb_obj(ray_t* ray, phys_obj_t* box, ray
   return rtn;
 }
 
+// SAT test used in phys_collision_check_aabb_v_triangle()
+INLINE bool phys_collision_check_aabb_v_triangle_sat_test(vec3 axis, vec3 e, vec3 v0, vec3 v1, vec3 v2, vec3 u0, vec3 u1, vec3 u2)
+{
+  // Project all 3 vertices of the triangle onto the Seperating axis
+  // float p0 = Vector3.Dot(v0, axis_u0_f0);
+  // float p1 = Vector3.Dot(v1, axis_u0_f0);
+  // float p2 = Vector3.Dot(v2, axis_u0_f0);
+  float p0 = vec3_dot(v0, axis);
+  float p1 = vec3_dot(v1, axis);
+  float p2 = vec3_dot(v2, axis);
+  // Project the AABB onto the seperating axis
+  // We don't care about the end points of the prjection
+  // just the length of the half-size of the AABB
+  // That is, we're only casting the extents onto the 
+  // seperating axis, not the AABB center. We don't
+  // need to cast the center, because we know that the
+  // aabb is at origin compared to the triangle!
+  // float r = e.X * Math.Abs(Vector3.Dot(u0, axis_u0_f0)) +
+  //             e.Y * Math.Abs(Vector3.Dot(u1, axis_u0_f0)) +
+  //             e.Z * Math.Abs(Vector3.Dot(u2, axis_u0_f0));
+  float r = e[0] * fabsf(vec3_dot(u0, axis)) +
+            e[1] * fabsf(vec3_dot(u1, axis)) +
+            e[2] * fabsf(vec3_dot(u2, axis));
+  // Now do the actual test, basically see if either of
+  // the most extreme of the triangle points intersects r
+  // You might need to write Min & Max functions that take 3 arguments
+  // if (Max(-Max(p0, p1, p2), Min(p0, p1, p2)) > r) {
+  return (MAX(-MAX3(p0, p1, p2), MIN3(p0, p1, p2)) > r);
+  // if this is false// if this is false::
+  // This means BOTH of the points of the projected triangle
+  // are outside the projected half-length of the AABB
+  // Therefore the axis is seperating and we can exit
+
+}
+// taken from: https://gdbooks.gitbooks.io/3dcollisions/content/Chapter4/aabb-triangle.html
+// c: position of aabb, aka. center
+// e: extends of aabb, aka. max
+// v0, v1, v2: points of triangle
+INLINE bool phys_collision_check_aabb_v_triangle(vec3 c, vec3 e, vec3 v0, vec3 v1, vec3 v2)
+{
+  // // Get the triangle points as vectors
+  // Vector3 v0 = triangle.p0.ToVector();
+  // Vector3 v1 = triangle.p1.ToVector();
+  // Vector3 v2 = triangle.p2.ToVector();
+
+  // Convert AABB to center-extents form
+  // Vector3 c = aabb.Center.ToVector();
+  // Vector3 e = aabb.Extents;
+  // vec3 c, e;
+  // vec3_copy(pos, c);
+  // vec3_copy(extends, e);
+
+  // Translate the triangle as conceptually moving the AABB to origin
+  // This is the same as we did with the point in triangle test
+  // v0 -= c;
+  // v1 -= c;
+  // v2 -= c;
+  vec3_sub(v0, c, v0);
+  vec3_sub(v1, c, v1);
+  vec3_sub(v2, c, v2);
+
+  // Compute the edge vectors of the triangle  (ABC)
+  // That is, get the lines between the points as vectors
+  // Vector3 f0 = v1 - v0; // B - A
+  // Vector3 f1 = v2 - v1; // C - B
+  // Vector3 f2 = v0 - v2; // A - C
+  vec3 f0, f1, f2;
+  vec3_sub(v1, v0, f0);
+  vec3_sub(v2, v1, f1);
+  vec3_sub(v0, v2, f2);
+
+  // Compute the face normals of the AABB, because the AABB
+  // is at center, and of course axis aligned, we know that 
+  // it's normals are the X, Y and Z axis.
+  // Vector3 u0 = new Vector3(1.0f, 0.0f, 0.0f);
+  // Vector3 u1 = new Vector3(0.0f, 1.0f, 0.0f);
+  // Vector3 u2 = new Vector3(0.0f, 0.0f, 1.0f);
+  vec3 u0 = { 1.0f, 0.0f, 0.0f };
+  vec3 u1 = { 0.0f, 1.0f, 0.0f };
+  vec3 u2 = { 0.0f, 0.0f, 1.0f };
+
+  // There are a total of 13 axis to test!
+
+  // We first test against 9 axis, these axis are given by
+  // cross product combinations of the edges of the triangle
+  // and the edges of the AABB. You need to get an axis testing
+  // each of the 3 sides of the AABB against each of the 3 sides
+  // of the triangle. The result is 9 axis of seperation
+  // https://awwapp.com/b/umzoc8tiv/
+
+  // Compute the 9 axis
+  // Vector3 axis_u0_f0 = Vector3.Cross(u0, f0);
+  // Vector3 axis_u0_f1 = Vector3.Cross(u0, f1);
+  // Vector3 axis_u0_f2 = Vector3.Cross(u0, f2);
+  // Vector3 axis_u1_f0 = Vector3.Cross(u1, f0);
+  // Vector3 axis_u1_f1 = Vector3.Cross(u1, f1);
+  // Vector3 axis_u1_f2 = Vector3.Cross(u2, f2);
+  // Vector3 axis_u2_f0 = Vector3.Cross(u2, f0);
+  // Vector3 axis_u2_f1 = Vector3.Cross(u2, f1);
+  // Vector3 axis_u2_f2 = Vector3.Cross(u2, f2);
+
+  vec3 axis_u0_f0 = VEC3_INIT_CROSS(u0, f0);
+  vec3 axis_u0_f1 = VEC3_INIT_CROSS(u0, f1);
+  vec3 axis_u0_f2 = VEC3_INIT_CROSS(u0, f2);
+
+  vec3 axis_u1_f0 = VEC3_INIT_CROSS(u1, f0);
+  vec3 axis_u1_f1 = VEC3_INIT_CROSS(u1, f1);
+  vec3 axis_u1_f2 = VEC3_INIT_CROSS(u2, f2);
+
+  vec3 axis_u2_f0 = VEC3_INIT_CROSS(u2, f0);
+  vec3 axis_u2_f1 = VEC3_INIT_CROSS(u2, f1);
+  vec3 axis_u2_f2 = VEC3_INIT_CROSS(u2, f2);
+
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u0_f0, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u0_f1, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u0_f2, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u1_f0, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u1_f1, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u1_f2, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u2_f0, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u2_f1, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u2_f2, e, v0, v1, v2, u0, u1, u2)) { return false; }
+
+  // Next, we have 3 face normals from the AABB
+  // for these tests we are conceptually checking if the bounding box
+  // of the triangle intersects the bounding box of the AABB
+  // that is to say, the seperating axis for all tests are axis aligned:
+  // axis1: (1, 0, 0), axis2: (0, 1, 0), axis3 (0, 0, 1)
+  // Do the SAT given the 3 primary axis of the AABB
+  // You already have vectors for this: u0, u1 & u2
+  if (phys_collision_check_aabb_v_triangle_sat_test(u0, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(u1, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(u2, e, v0, v1, v2, u0, u1, u2)) { return false; }
+
+  // Finally, we have one last axis to test, the face normal of the triangle
+  // We can get the normal of the triangle by crossing the first two line segments
+  // Vector3 triangleNormal = Vector3.Cross(f0, f1);
+  vec3 triangle_normal = VEC3_INIT_CROSS(f0, f1);
+  if (phys_collision_check_aabb_v_triangle_sat_test(triangle_normal, e, v0, v1, v2, u0, u1, u2)) { return false; }
+
+  // Passed testing for all 13 seperating axis that exist!
+  debug_draw_sphere_register_t(c, 1.0f, RGB_F(0, 1, 0), 100.0f);
+  return true;
+}
+INLINE bool phys_collision_check_aabb_v_triangle_obj(phys_obj_t* box, vec3 v0, vec3 v1, vec3 v2)
+{
+  return phys_collision_check_aabb_v_triangle(box->pos, box->collider.box.aabb[1], v0, v1, v2);
+}
 
 #ifdef __cplusplus
 } // extern c

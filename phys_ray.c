@@ -11,6 +11,7 @@
 // @TODO: @OPTIMIZE: optimize this, chunks
 bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char* _func, const int _line)
 {
+  (void)_file; (void)_func; (void)_line;
   u32 len = 0;
   phys_obj_t* arr = phys_get_obj_arr(&len);
 
@@ -18,7 +19,7 @@ bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char
   ray_hit_t* hit_arr = NULL;
   u32        hit_arr_len = 0;
 
-  for (int i = 0; i < len; ++i)
+  for (int i = 0; i < (int)len; ++i)
   {
     phys_obj_t* obj = &arr[i];
    
@@ -63,7 +64,7 @@ bool phys_ray_cast_dbg(ray_t* ray, ray_hit_t* out, const char* _file, const char
 
   // get closest hit
   int idx = 0;
-  for (int i = 0; i < hit_arr_len; ++i)
+  for (int i = 0; i < (int)hit_arr_len; ++i)
   {
     if (hit_arr[i].dist < hit_arr[idx].dist) { idx = i; }
   }
