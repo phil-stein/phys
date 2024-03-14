@@ -406,8 +406,8 @@ void phys_update_old(f32 dt)
       //   obj0->rb.force[1] += 200.0f;
       // }
 
-      goto AFTER_TERRAIN_COLLISION; // skip for now
       #ifdef TERRAIN_ADDON
+      goto AFTER_TERRAIN_COLLISION; // skip for now
       f32* pos  = NULL;
       f32* pos1 = NULL;
       f32* pos2 = NULL;
