@@ -1,11 +1,13 @@
 #ifndef PHYS_PHYS_COLLISION_H
 #define PHYS_PHYS_COLLISION_H
 
+#include "core/debug/debug_draw.h"
 #include "global/global.h"
 #include "math/math_inc.h"
 #include "math/math_vec3.h"
 #include "phys/phys_types.h" 
 #include "phys/phys_debug_draw.h" 
+#include <float.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,6 +41,32 @@ collision_info_t phys_collision_check_aabb_v_sphere_swept(phys_obj_t* b, phys_ob
 
 // --- inline funcs ---
 
+// @TODO: make phys_util.h and put there
+INLINE void phys_util_obj_get_aabb(phys_obj_t* box, vec3 min, vec3 max)
+{
+  // add position & offset to min & max of both colliders
+	vec3_copy(box->collider.box.aabb[0], min);
+	vec3_copy(box->collider.box.aabb[1], max);
+  vec3_mul(min, box->scl, min);
+  vec3_mul(max, box->scl, max);
+	vec3_add(min, box->pos, min);
+	vec3_add(max, box->pos, max);
+	vec3_add(min, box->collider.offset, min);
+	vec3_add(max, box->collider.offset, max);
+}
+INLINE void phys_util_closest_point_aabb(vec3 min, vec3 max, vec3 p, vec3 out)
+{
+  out[0] = p[0] > max[0] ? max[0] : (p[0] < min[0] ? min[0] : p[0]);
+  out[1] = p[1] > max[1] ? max[1] : (p[1] < min[1] ? min[1] : p[1]);
+  out[2] = p[2] > max[2] ? max[2] : (p[2] < min[2] ? min[2] : p[2]);
+}
+INLINE void phys_util_closest_point_aabb_obj(phys_obj_t* obj, vec3 p, vec3 out)
+{
+  vec3 min, max;
+  phys_util_obj_get_aabb(obj, min, max);
+  phys_util_closest_point_aabb(min, max, p, out);
+
+}
 
 // taken from: https://gamedev.stackexchange.com/questions/96459/fast-ray-sphere-collision-code
 // also used:  '3D Math Primer for Graphics and Game Development' by Dunn Parberry, page 727
@@ -158,6 +186,65 @@ INLINE bool phys_collision_check_ray_v_aabb_obj(ray_t* ray, phys_obj_t* box, ray
   return rtn;
 }
 
+// taken from: https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+// @TODO: use this instead 56:00: https://www.youtube.com/watch?v=Ge3aKEmZcqY&t=9606s
+//        wikipedia one is much slower
+INLINE bool phys_collision_ray_v_triangle(ray_t* ray, vec3 p0, vec3 p1, vec3 p2, ray_hit_t* hit)
+{
+  hit->hit = false;
+  // constexpr float epsilon std::numeric_limits<float>::epsilon();
+  // vec3 edge1 = triangle.b - triangle.a;
+  // vec3 edge2 = triangle.c - triangle.a;
+  // vec3 ray_cross_e2 = cross(ray_vector, edge2);
+  // float det = dot(edge1, ray_cross_e2);
+  vec3 edge01 = VEC3_INIT_SUB(p1, p0);
+  vec3 edge02 = VEC3_INIT_SUB(p2, p0);
+  vec3 ray_cross_e2 = VEC3_INIT_CROSS(ray->dir, edge02);
+  f32 det = vec3_dot(edge01, ray_cross_e2);
+
+  // if (det > -epsilon && det < epsilon)
+  //     return false;    // This ray is parallel to this triangle.
+  if (det > -FLT_EPSILON&& det < FLT_EPSILON) { return false; }
+
+  float inv_det = 1.0f / det;
+  // vec3 s = ray_origin - triangle.a;
+  // float u = inv_det * dot(s, ray_cross_e2);
+  vec3 s = VEC3_INIT_SUB(ray->pos, p0);
+  f32 u  = inv_det * vec3_dot(s, ray_cross_e2);
+
+  if (u < 0 || u > 1) { return false; }
+
+  // vec3 s_cross_e1 = cross(s, edge1);
+  // float v = inv_det * dot(ray_vector, s_cross_e1);
+  vec3 s_cross_e1 = VEC3_INIT_CROSS(s, edge01);
+  f32 v = inv_det * vec3_dot(ray->dir, s_cross_e1);
+
+  if (v < 0 || u + v > 1) { return false; }
+
+  // At this stage we can compute t to find out where the intersection point is on the line.
+  // float t = inv_det * dot(edge2, s_cross_e1);
+  float t = inv_det * vec3_dot(edge02, s_cross_e1);
+
+  // if (t > epsilon) // ray intersection
+  // {
+  //     out_intersection_point = ray_origin + ray_vector * t;
+  //     return true;
+  // }
+  // else // This means that there is a line intersection but not a ray intersection.
+  //     return false;
+  if (t > FLT_EPSILON) // ray intersection
+  {
+    // out_intersection_point = ray_origin + ray_vector * t;
+    hit->hit = true;
+    hit->dist = t;
+    vec3_mul_f(ray->dir, t, hit->hit_point);
+    vec3_add(ray->pos, hit->hit_point, hit->hit_point);
+    return true;
+  }
+  // This means that there is a line intersection but not a ray intersection.
+  return false;
+}
+
 // SAT test used in phys_collision_check_aabb_v_triangle()
 INLINE bool phys_collision_check_aabb_v_triangle_sat_test(vec3 axis, vec3 e, vec3 v0, vec3 v1, vec3 v2, vec3 u0, vec3 u1, vec3 u2)
 {
@@ -196,7 +283,7 @@ INLINE bool phys_collision_check_aabb_v_triangle_sat_test(vec3 axis, vec3 e, vec
 // c: position of aabb, aka. center
 // e: extends of aabb, aka. max
 // v0, v1, v2: points of triangle
-INLINE bool phys_collision_check_aabb_v_triangle(vec3 c, vec3 e, vec3 v0, vec3 v1, vec3 v2)
+INLINE bool phys_collision_check_aabb_v_triangle(vec3 c, vec3 max, vec3 p0, vec3 p1, vec3 p2)
 {
   // // Get the triangle points as vectors
   // Vector3 v0 = triangle.p0.ToVector();
@@ -215,9 +302,10 @@ INLINE bool phys_collision_check_aabb_v_triangle(vec3 c, vec3 e, vec3 v0, vec3 v
   // v0 -= c;
   // v1 -= c;
   // v2 -= c;
-  vec3_sub(v0, c, v0);
-  vec3_sub(v1, c, v1);
-  vec3_sub(v2, c, v2);
+  vec3 v0, v1, v2;
+  vec3_sub(p0, c, v0);
+  vec3_sub(p1, c, v1);
+  vec3_sub(p2, c, v2);
 
   // Compute the edge vectors of the triangle  (ABC)
   // That is, get the lines between the points as vectors
@@ -265,21 +353,21 @@ INLINE bool phys_collision_check_aabb_v_triangle(vec3 c, vec3 e, vec3 v0, vec3 v
 
   vec3 axis_u1_f0 = VEC3_INIT_CROSS(u1, f0);
   vec3 axis_u1_f1 = VEC3_INIT_CROSS(u1, f1);
-  vec3 axis_u1_f2 = VEC3_INIT_CROSS(u2, f2);
+  vec3 axis_u1_f2 = VEC3_INIT_CROSS(u1, f2);
 
   vec3 axis_u2_f0 = VEC3_INIT_CROSS(u2, f0);
   vec3 axis_u2_f1 = VEC3_INIT_CROSS(u2, f1);
   vec3 axis_u2_f2 = VEC3_INIT_CROSS(u2, f2);
 
-  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u0_f0, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u0_f1, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u0_f2, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u1_f0, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u1_f1, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u1_f2, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u2_f0, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u2_f1, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u2_f2, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u0_f0, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u0_f1, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u0_f2, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u1_f0, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u1_f1, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u1_f2, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u2_f0, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u2_f1, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(axis_u2_f2, max, v0, v1, v2, u0, u1, u2)) { return false; }
 
   // Next, we have 3 face normals from the AABB
   // for these tests we are conceptually checking if the bounding box
@@ -288,27 +376,33 @@ INLINE bool phys_collision_check_aabb_v_triangle(vec3 c, vec3 e, vec3 v0, vec3 v
   // axis1: (1, 0, 0), axis2: (0, 1, 0), axis3 (0, 0, 1)
   // Do the SAT given the 3 primary axis of the AABB
   // You already have vectors for this: u0, u1 & u2
-  if (phys_collision_check_aabb_v_triangle_sat_test(u0, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(u1, e, v0, v1, v2, u0, u1, u2)) { return false; }
-  if (phys_collision_check_aabb_v_triangle_sat_test(u2, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(u0, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(u1, max, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(u2, max, v0, v1, v2, u0, u1, u2)) { return false; }
 
   // Finally, we have one last axis to test, the face normal of the triangle
   // We can get the normal of the triangle by crossing the first two line segments
   // Vector3 triangleNormal = Vector3.Cross(f0, f1);
   vec3 triangle_normal = VEC3_INIT_CROSS(f0, f1);
-  if (phys_collision_check_aabb_v_triangle_sat_test(triangle_normal, e, v0, v1, v2, u0, u1, u2)) { return false; }
+  if (phys_collision_check_aabb_v_triangle_sat_test(triangle_normal, max, v0, v1, v2, u0, u1, u2)) { return false; }
 
   // Passed testing for all 13 seperating axis that exist!
-  debug_draw_sphere_t(c, 1.0f, RGB_F(0, 1, 0), 100.0f);
+  // debug_draw_sphere_t(c, 1.0f, RGB_F(0, 1, 0), 100.0f);
   return true;
 }
 INLINE bool phys_collision_check_aabb_v_triangle_obj(phys_obj_t* box, vec3 v0, vec3 v1, vec3 v2)
 {
+  // add to pos not min/max bc. aabb_v_triangle() uses center/pos and extends
   vec3 pos; 
 	vec3_add(box->pos, box->collider.offset, pos);
-  debug_draw_sphere(pos, 0.5f, RGB_F(0, 1, 0));
-  return phys_collision_check_aabb_v_triangle(pos, box->collider.box.aabb[1], v0, v1, v2);
+  // debug_draw_sphere(pos, 0.5f, RGB_F(0, 1, 0));
+  vec3 max;
+  vec3_copy(box->collider.box.aabb[1], max);
+  return phys_collision_check_aabb_v_triangle(pos, max, v0, v1, v2);
 }
+
+// @TODO:
+// INLINE void phys_collision_check_aabb_v_point()
 
 #ifdef __cplusplus
 } // extern c
