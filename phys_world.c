@@ -407,11 +407,7 @@ void phys_update_old(f32 dt)
       // }
 
       #ifdef TERRAIN_ADDON
-      goto AFTER_TERRAIN_COLLISION; // skip for now
-      f32* pos  = NULL;
-      f32* pos1 = NULL;
-      f32* pos2 = NULL;
-
+      
       // @TMP:
       if (obj0->collider.type != PHYS_COLLIDER_BOX) { continue; }
       
@@ -443,56 +439,41 @@ void phys_update_old(f32 dt)
         // int x_idx = (int)ceil( (x_perc * col_x_len) );
         // int z_idx = (int)ceil( (z_perc * col_z_len) );
         int idx = x_idx + (z_idx * (int)core_data->terrain_collider_positions_z_len);
-        pos  = &chunk->collider_points[idx*3];
-        debug_draw_sphere(pos, 1.0f, RGB_F(1, 0, 0)); 
-        // P_V(idx);
         
-        // if (idx+1 % core_data->terrain_collider_positions_x_len != 0 && 
-        //     idx+1 % core_data->terrain_z_len != 0)
-        // {
-          pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len-1) *3];
-          pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len) *3];
-          // if (phys_collision_check_aabb_v_triangle(obj0->pos, obj0->collider.box.aabb[1], pos, pos1, pos2) )
-          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
-          { goto TERRAIN_COLLISION; }
-          pos1 = &chunk->collider_points[(idx - 1) *3];
-          pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len-1) *3];
-          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
-          { goto TERRAIN_COLLISION; }
-          pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len   ) *3];
-          pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len +1) *3];
-          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
-          { goto TERRAIN_COLLISION; }
-          pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len +1) *3];
-          pos2 = &chunk->collider_points[((u32)idx +1) *3];
-          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
-          { goto TERRAIN_COLLISION; }
-          pos1 = &chunk->collider_points[((u32)idx +1) *3];
-          pos2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len +1) *3];
-          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
-          { goto TERRAIN_COLLISION; }
-          pos1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len +1) *3];
-          pos2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len) *3];
-          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
-          { goto TERRAIN_COLLISION; }
-          pos1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len) *3];
-          pos2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len -1) *3];
-          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
-          { goto TERRAIN_COLLISION; }
-          pos1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len -1) *3];
-          pos2 = &chunk->collider_points[((u32)idx - 1) *3];
-          if (phys_collision_check_aabb_v_triangle_obj(obj0, pos, pos1, pos2) )
-          { goto TERRAIN_COLLISION; }
-        // }
-        // else { }
-
-        goto AFTER_TERRAIN_COLLISION;
-        TERRAIN_COLLISION:;
-        P_INFO("hit terrain: %d\n", obj0->entity_idx);
-        phys_debug_draw_collider_col(obj0, RGB_F(1, 0, 0));
-        REMOVE_FLAG(obj0->flags, (phys_obj_flag)PHYS_HAS_RIGIDBODY);
-        debug_draw_sphere_t(obj0->pos, 0.75f, RGB_F(1, 0, 0), 100.0f);
-        AFTER_TERRAIN_COLLISION:;
+        // pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len-1) *3];
+        // pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len) *3];
+        // pos1 = &chunk->collider_points[(idx - 1) *3];
+        // pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len-1) *3];
+        // pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len   ) *3];
+        // pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len +1) *3];
+        // pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len +1) *3];
+        // pos2 = &chunk->collider_points[((u32)idx +1) *3];
+        // pos1 = &chunk->collider_points[((u32)idx +1) *3];
+        // pos2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len +1) *3];
+        // pos1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len +1) *3];
+        // pos2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len) *3];
+        // pos1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len) *3];
+        // pos2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len -1) *3];
+        // pos1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len -1) *3];
+        // pos2 = &chunk->collider_points[((u32)idx - 1) *3];
+        
+        f32* p0 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len -1) *3];
+        f32* p1 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len)    *3];
+        f32* p2 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len +1) *3];
+        f32* p3 = &chunk->collider_points[((u32)idx -1) *3];
+        f32* p4 = &chunk->collider_points[           idx*3];
+        f32* p5 = &chunk->collider_points[((u32)idx +1) *3];
+        f32* p6 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len -1) *3];
+        f32* p7 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len)    *3];
+        f32* p8 = &chunk->collider_points[((u32)idx - core_data->terrain_collider_positions_x_len +1) *3];
+        debug_draw_sphere(p4, 0.3f, RGB_F(0, 1, 1)); 
+        f32 dist = 0.0f;
+        if ( phys_collision_check_aabb_v_terrain_obj(obj0, p0, p1, p2, p3, p4, p5, p6, p7, p8, &dist) )
+        {
+          obj0->pos[1] += dist;
+          obj0->rb.velocity[1] = 0.0f;
+          obj0->rb.force[1] *= -0.5f;
+        }
 	    }
       #endif // TERRAIN_ADDON
 		}

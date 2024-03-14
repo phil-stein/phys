@@ -407,8 +407,8 @@ INLINE void phys_collision_check_aabb_v_terrain_triangle(ray_t* ray, ray_hit_t* 
   ray->pos[2] = min[2]; 
   if ( phys_collision_ray_v_triangle(ray, p0, p1, p2, hit) ) 
   {
-    debug_draw_line(ray->pos, hit->hit_point, RGBF(0, 0, 1));
-    debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(0, 0, 1));
+    // debug_draw_line(ray->pos, hit->hit_point, RGBF(0, 0, 1));
+    // debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(0, 0, 1));
     if (hit->dist < hit_final->dist)
     { *hit_final = *hit; }
   }
@@ -416,8 +416,8 @@ INLINE void phys_collision_check_aabb_v_terrain_triangle(ray_t* ray, ray_hit_t* 
   ray->pos[0] = max[0]; 
   if ( phys_collision_ray_v_triangle(ray, p0, p1, p2, hit) ) 
   {
-    debug_draw_line(ray->pos, hit->hit_point, RGBF(0, 1, 0));
-    debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(0, 1, 0));
+    // debug_draw_line(ray->pos, hit->hit_point, RGBF(0, 1, 0));
+    // debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(0, 1, 0));
     if (hit->dist < hit_final->dist)
     { *hit_final = *hit; }
   }
@@ -425,8 +425,8 @@ INLINE void phys_collision_check_aabb_v_terrain_triangle(ray_t* ray, ray_hit_t* 
   ray->pos[2] = max[2]; 
   if ( phys_collision_ray_v_triangle(ray, p0, p1, p2, hit) ) 
   {
-    debug_draw_line(ray->pos, hit->hit_point, RGBF(1, 0, 0));
-    debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(1, 0, 0));
+    // debug_draw_line(ray->pos, hit->hit_point, RGBF(1, 0, 0));
+    // debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(1, 0, 0));
     if (hit->dist < hit_final->dist)
     { *hit_final = *hit; }
   }
@@ -434,8 +434,8 @@ INLINE void phys_collision_check_aabb_v_terrain_triangle(ray_t* ray, ray_hit_t* 
   ray->pos[0] = min[0]; 
   if ( phys_collision_ray_v_triangle(ray, p0, p1, p2, hit) ) 
   {
-    debug_draw_line(ray->pos, hit->hit_point, RGBF(0, 1, 0));
-    debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(0, 1, 0));
+    // debug_draw_line(ray->pos, hit->hit_point, RGBF(0, 1, 0));
+    // debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(0, 1, 0));
     if (hit->dist < hit_final->dist)
     { *hit_final = *hit; }
   }
@@ -467,16 +467,17 @@ INLINE bool phys_collision_check_aabb_v_terrain(vec3 min, vec3 max, vec3 p0, vec
 
   // P_VEC3(hit_final.hit_point);
   *dist = hit_final.hit_point[1] - min[1];
-  if (hit_final.hit && *dist > 0.0f)
-  {
-    debug_draw_line_width(ray.pos, hit_final.hit_point, RGBF(0, 1, 1), 20);
-    debug_draw_sphere(hit_final.hit_point, 0.3f,  RGBF(0, 1, 1));
-    min[1] += *dist;
-    max[1] += *dist;
-    phys_debug_draw_aabb(min, max, RGBF(0, 1, 1));
-    return true;
-  }
-  return false;
+  // if (hit_final.hit && *dist > 0.0f)
+  // {
+  //   debug_draw_line_width(ray.pos, hit_final.hit_point, RGBF(0, 1, 1), 20);
+  //   debug_draw_sphere(hit_final.hit_point, 0.3f,  RGBF(0, 1, 1));
+  //   min[1] += *dist;
+  //   max[1] += *dist;
+  //   phys_debug_draw_aabb(min, max, RGBF(0, 1, 1));
+  //   return true;
+  // }
+  // return false;
+  return hit_final.hit && *dist > 0.0f;
 }
 INLINE bool phys_collision_check_aabb_v_terrain_obj(phys_obj_t* obj, vec3 p0, vec3 p1, vec3 p2, vec3 p3, vec3 p4, vec3 p5, vec3 p6, vec3 p7, vec3 p8, f32* dist)
 {
