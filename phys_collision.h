@@ -65,7 +65,6 @@ INLINE void phys_util_closest_point_aabb_obj(phys_obj_t* obj, vec3 p, vec3 out)
   vec3 min, max;
   phys_util_obj_get_aabb(obj, min, max);
   phys_util_closest_point_aabb(min, max, p, out);
-
 }
 
 // taken from: https://gamedev.stackexchange.com/questions/96459/fast-ray-sphere-collision-code
@@ -187,8 +186,6 @@ INLINE bool phys_collision_check_ray_v_aabb_obj(ray_t* ray, phys_obj_t* box, ray
 }
 
 // taken from: https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-// @TODO: use this instead 56:00: https://www.youtube.com/watch?v=Ge3aKEmZcqY&t=9606s
-//        wikipedia one is much slower
 INLINE bool phys_collision_ray_v_triangle(ray_t* ray, vec3 p0, vec3 p1, vec3 p2, ray_hit_t* hit)
 {
   hit->hit = false;
@@ -223,7 +220,7 @@ INLINE bool phys_collision_ray_v_triangle(ray_t* ray, vec3 p0, vec3 p1, vec3 p2,
 
   // At this stage we can compute t to find out where the intersection point is on the line.
   // float t = inv_det * dot(edge2, s_cross_e1);
-  float t = inv_det * vec3_dot(edge02, s_cross_e1);
+  f32 t = inv_det * vec3_dot(edge02, s_cross_e1);
 
   // if (t > epsilon) // ray intersection
   // {
@@ -399,6 +396,93 @@ INLINE bool phys_collision_check_aabb_v_triangle_obj(phys_obj_t* box, vec3 v0, v
   vec3 max;
   vec3_copy(box->collider.box.aabb[1], max);
   return phys_collision_check_aabb_v_triangle(pos, max, v0, v1, v2);
+}
+
+INLINE void phys_collision_check_aabb_v_terrain_triangle(ray_t* ray, ray_hit_t* hit, ray_hit_t* hit_final, vec3 min, vec3 max, vec3 p0, vec3 p1, vec3 p2)
+{
+  hit->hit = false;
+  hit->dist = -1.0f;
+  // min.x, min.z
+  ray->pos[0] = min[0]; 
+  ray->pos[2] = min[2]; 
+  if ( phys_collision_ray_v_triangle(ray, p0, p1, p2, hit) ) 
+  {
+    debug_draw_line(ray->pos, hit->hit_point, RGBF(0, 0, 1));
+    debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(0, 0, 1));
+    if (hit->dist < hit_final->dist)
+    { *hit_final = *hit; }
+  }
+  // max.x, min.z
+  ray->pos[0] = max[0]; 
+  if ( phys_collision_ray_v_triangle(ray, p0, p1, p2, hit) ) 
+  {
+    debug_draw_line(ray->pos, hit->hit_point, RGBF(0, 1, 0));
+    debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(0, 1, 0));
+    if (hit->dist < hit_final->dist)
+    { *hit_final = *hit; }
+  }
+  // max.x, max.z
+  ray->pos[2] = max[2]; 
+  if ( phys_collision_ray_v_triangle(ray, p0, p1, p2, hit) ) 
+  {
+    debug_draw_line(ray->pos, hit->hit_point, RGBF(1, 0, 0));
+    debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(1, 0, 0));
+    if (hit->dist < hit_final->dist)
+    { *hit_final = *hit; }
+  }
+  // min.x, max.z
+  ray->pos[0] = min[0]; 
+  if ( phys_collision_ray_v_triangle(ray, p0, p1, p2, hit) ) 
+  {
+    debug_draw_line(ray->pos, hit->hit_point, RGBF(0, 1, 0));
+    debug_draw_sphere(hit->hit_point, 0.25f,  RGBF(0, 1, 0));
+    if (hit->dist < hit_final->dist)
+    { *hit_final = *hit; }
+  }
+}
+// @TODO: use this instead 00:56:00 / 02:11:00: https://www.youtube.com/watch?v=Ge3aKEmZcqY&t=9606s
+//        wikipedia one is much slower
+INLINE bool phys_collision_check_aabb_v_terrain(vec3 min, vec3 max, vec3 p0, vec3 p1, vec3 p2, vec3 p3, vec3 p4, vec3 p5, vec3 p6, vec3 p7, vec3 p8, f32* dist)
+{
+  const f32 y_offs = 100.0f;
+  ray_t ray = 
+  {
+    .dir = { 0, -1, 0 },
+    .pos = { min[0], min[1] + y_offs, min[2] },
+    .len = 0.0f,
+    .mask_arr = NULL,
+    .mask_arr_len = 0,
+    .draw_debug = false
+  };
+  ray_hit_t hit       = { .hit = false, .dist = 0.0f,      .hit_point = { 0, 0, 0 } };
+  ray_hit_t hit_final = { .hit = false, .dist = 999999.0f, .hit_point = { 0, 0, 0 } };
+  phys_collision_check_aabb_v_terrain_triangle(&ray, &hit, &hit_final, min, max, p0, p3, p4);
+  phys_collision_check_aabb_v_terrain_triangle(&ray, &hit, &hit_final, min, max, p0, p4, p1);
+  phys_collision_check_aabb_v_terrain_triangle(&ray, &hit, &hit_final, min, max, p1, p4, p5);
+  phys_collision_check_aabb_v_terrain_triangle(&ray, &hit, &hit_final, min, max, p1, p5, p2);
+  phys_collision_check_aabb_v_terrain_triangle(&ray, &hit, &hit_final, min, max, p3, p6, p7);
+  phys_collision_check_aabb_v_terrain_triangle(&ray, &hit, &hit_final, min, max, p3, p7, p4);
+  phys_collision_check_aabb_v_terrain_triangle(&ray, &hit, &hit_final, min, max, p4, p7, p8);
+  phys_collision_check_aabb_v_terrain_triangle(&ray, &hit, &hit_final, min, max, p4, p8, p5);
+
+  // P_VEC3(hit_final.hit_point);
+  *dist = hit_final.hit_point[1] - min[1];
+  if (hit_final.hit && *dist > 0.0f)
+  {
+    debug_draw_line_width(ray.pos, hit_final.hit_point, RGBF(0, 1, 1), 20);
+    debug_draw_sphere(hit_final.hit_point, 0.3f,  RGBF(0, 1, 1));
+    min[1] += *dist;
+    max[1] += *dist;
+    phys_debug_draw_aabb(min, max, RGBF(0, 1, 1));
+    return true;
+  }
+  return false;
+}
+INLINE bool phys_collision_check_aabb_v_terrain_obj(phys_obj_t* obj, vec3 p0, vec3 p1, vec3 p2, vec3 p3, vec3 p4, vec3 p5, vec3 p6, vec3 p7, vec3 p8, f32* dist)
+{
+  vec3 min, max;
+  phys_util_obj_get_aabb(obj, min, max);
+  return phys_collision_check_aabb_v_terrain(min, max, p0, p1, p2, p3, p4, p5, p6, p7, p8, dist);
 }
 
 // @TODO:
