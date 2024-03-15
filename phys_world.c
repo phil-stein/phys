@@ -439,6 +439,21 @@ void phys_update_old(f32 dt)
         // int x_idx = (int)ceil( (x_perc * col_x_len) );
         // int z_idx = (int)ceil( (z_perc * col_z_len) );
         int idx = x_idx + (z_idx * (int)core_data->terrain_collider_positions_z_len);
+
+        int x_len = (int)core_data->terrain_collider_positions_x_len;
+        int z_len = (int)core_data->terrain_collider_positions_z_len;
+        // right / +x
+        bool right = ((idx+1) % x_len == 0);
+        idx -= right * 1;
+        // left / -x
+        bool left = (idx % x_len == 0);
+        idx += left * 1;
+        // bottom / -z
+        bool bottom = (idx < x_len);
+        idx += bottom * x_len;
+        // top  / +z
+        bool top = (idx + x_len >= x_len * z_len);
+        idx -= top * x_len;
         
         // pos1 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len-1) *3];
         // pos2 = &chunk->collider_points[((u32)idx + core_data->terrain_collider_positions_x_len) *3];
@@ -472,7 +487,7 @@ void phys_update_old(f32 dt)
         {
           obj0->pos[1] += dist;
           obj0->rb.velocity[1] = 0.0f;
-          obj0->rb.force[1] *= -0.5f;
+          obj0->rb.force[1] *= -1.5f;
         }
 	    }
       #endif // TERRAIN_ADDON
