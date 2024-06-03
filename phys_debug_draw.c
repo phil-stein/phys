@@ -1,3 +1,4 @@
+
 #ifdef PHYS_DEBUG
 
 #include "phys/phys_debug_draw.h"
@@ -81,4 +82,10 @@ void phys_debug_draw_box_collider_func(phys_obj_t* obj, f32* color)
   phys_debug_draw_aabb_func(min, max, color);
 }
 
-#endif
+#else   // PHYS_DEBUG
+
+typedef int ____iso_c_doesnt_allow_empty_translation_units_lol_thats_why_this_exists_02____;
+
+#endif  // PHYS_DEBUG
+
+
