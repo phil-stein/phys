@@ -6,8 +6,8 @@
 
 // const vec3 gravity = { 0.0f, -9.89f, 0.0f };
 // const vec3 gravity = { 0.0f, -12.0f, 0.0f };
-const vec3 gravity = { 0.0f, -18.0f, 0.0f };
-// const vec3 gravity = { 0.0f, -40.0f, 0.0f };
+// const vec3 gravity = { 0.0f, -18.0f, 0.0f };
+const vec3 gravity = { 0.0f, -30.0f, 0.0f };
 
 // ---- dynamics ----
 

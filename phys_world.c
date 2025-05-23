@@ -237,7 +237,6 @@ void phys_init(phys_internal_collision_callback* _collision_callback, phys_inter
 
 void phys_update(f32 dt)
 {
-
   // @NOTE: tried only doing every combination
   //        but, everything vibrating
   //        bc. objects ontop of one another 
@@ -246,7 +245,6 @@ void phys_update(f32 dt)
   //
   // phys_update_new(dt);
 
-  
   // @NOTE: old implementation:
   //        checks every obj against every other obj
   //        meanind does both 
